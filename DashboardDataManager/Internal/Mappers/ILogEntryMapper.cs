@@ -1,7 +1,7 @@
-﻿using DataAccessLibrary.Internal.EntityModels;
-using DataAccessLibrary.Models;
+﻿using DataLibrary.Internal.EntityModels;
+using DataLibrary.Models;
 
-namespace DataAccessLibrary.Mappers
+namespace DataLibrary.Mappers
 {
     internal interface ILogEntryMapper
     {

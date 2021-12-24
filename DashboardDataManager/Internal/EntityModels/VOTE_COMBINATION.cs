@@ -1,4 +1,4 @@
-﻿namespace DataAccessLibrary.Internal.EntityModels
+﻿namespace DataLibrary.Internal.EntityModels
 {
     internal partial class VOTE_COMBINATION
     {

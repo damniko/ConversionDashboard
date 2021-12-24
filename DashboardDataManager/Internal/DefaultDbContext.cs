@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using DataAccessLibrary.Internal.EntityModels;
+using DataLibrary.Internal.EntityModels;
 
-namespace DataAccessLibrary.DataAccess
+namespace DataLibrary.DataAccess
 {
     /// <summary>
     /// Entity Framework scaffold of the ANS_CUSTOM_2 database.

@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace DataAccessLibrary.Helpers
+namespace DataLibrary.Helpers
 {
     public class ConfigHelper : IConfigHelper
     {

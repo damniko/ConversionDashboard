@@ -1,4 +1,4 @@
-﻿namespace DataAccessLibrary.Helpers
+﻿namespace DataLibrary.Helpers
 {
     public interface IConfigHelper
     {

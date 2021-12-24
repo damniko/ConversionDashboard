@@ -1,4 +1,4 @@
-﻿namespace DataAccessLibrary.Models
+﻿namespace DataLibrary.Models
 {
     public enum ReconciliationResult
     {
@@ -12,8 +12,8 @@
     {
         public Guid Id { get; set; } = Guid.Empty;
         public DateTime Date { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
         public ReconciliationResult Result { get; set; }
         public string Description { get; set; } = string.Empty;
         public string? RunJob { get; set; }

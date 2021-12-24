@@ -1,4 +1,4 @@
-﻿namespace DataAccessLibrary.Models
+﻿namespace DataLibrary.Models
 {
     [Flags]
     public enum LogLevel : byte
@@ -19,5 +19,6 @@
         public LogLevel Level { get; set; }
         public long ExecutionId { get; set; }
         public long ContextId { get; set; }
+        public string? Manager { get; set; }
     }
 }

@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DataAccessLibrary.Internal.EntityModels;
-using DataAccessLibrary.Models;
+using DataLibrary.Internal.EntityModels;
+using DataLibrary.Models;
 
-namespace DataAccessLibrary.Mappers
+namespace DataLibrary.Mappers
 {
+    [Obsolete]
     internal class LogEntryMapper : ILogEntryMapper
     {
         public LogEntry Map(LOGGING input)

@@ -1,10 +1,11 @@
-﻿using DataAccessLibrary.Internal.EntityModels;
-using DataAccessLibrary.Models;
+﻿using DataLibrary.Internal.EntityModels;
+using DataLibrary.Models;
 
-namespace DataAccessLibrary.Internal.Mappers
+namespace DataLibrary.Internal.Mappers
 {
     internal class ReconciliationMapper : IReconciliationMapper
     {
+        [Obsolete]
         public Reconciliation Map(AFSTEMNING input)
         {
             Reconciliation output = new()
