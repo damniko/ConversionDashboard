@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using DataLibrary.Helpers;
 using DataLibrary.Models;
-using DataLibrary.Mappers;
 using DataLibrary.Internal.EntityModels;
 
 namespace DataLibrary.DataAccess

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 using DataLibrary.Helpers;
 using DataLibrary.Internal.EntityModels;
 using DataLibrary.Models;
@@ -19,83 +15,107 @@ namespace DataLibrary.DataAccess
             _configHelper = configHelper;
         }
 
-        // Get entries from MANAGERS table (use ROW_ID instead of fromDate)
-        // Use name to get entries from ENGINE_PROPERTIES ordered by TIMESTAMP
-        // Get first entry with END_TIME and use this to delimit the entries 
-        // (Remove entries where TIMESTAMP > END_TIME, possibly with some padding)
-
-        public List<Manager> Get(string connectionStringKey, int lastRowId)
+        public List<Manager> Get(string connStrKey, DateTime fromDate)
         {
-            var connectionString = _configHelper.GetConnectionString(connectionStringKey);
+            string connStr = _configHelper.GetConnectionString(connStrKey);
             var options = new DbContextOptionsBuilder()
-                .UseSqlServer(connectionString)
+                .UseSqlServer(connStr)
                 .Options;
 
-            List<Manager> output = new();
+            using var db = new DefaultDbContext(options);
 
-            List<MANAGER> managers;
-            List<ENGINE_PROPERTY> allProps;
-            using (var db = new DefaultDbContext(options))
-            {
-                managers = db.MANAGERS.Where(m => m.ROW_ID > lastRowId).ToList();
-                allProps = db.ENGINE_PROPERTIES.OrderBy(p => p.TIMESTAMP).ToList();
-            }
+            var engineProperties = (from e in db.ENGINE_PROPERTIES
+                                    where e.TIMESTAMP.HasValue && e.TIMESTAMP.Value > fromDate
+                                    orderby e.TIMESTAMP
+                                    select e)
+                                    .ToList();
 
-            foreach (var manager in managers)
-            {
-                var managerProps = allProps
-                    .Where(p => p.MANAGER!.Contains(manager.MANAGER_NAME!));
+            List<string> managerNames = engineProperties
+                .Where(e => e.KEY == "START_TIME")
+                .Select(e => e.MANAGER!)
+                .ToList();
 
-                var endTimeEntry = managerProps.FirstOrDefault(p => p.KEY == "END_TIME");
-                DateTime endTime = DateTime.Parse(endTimeEntry?.VALUE ?? string.Empty);
-
-                var props = managerProps
-                    .Where(p => p.TIMESTAMP.HasValue && p.TIMESTAMP.Value <= endTime.AddSeconds(10))
-                    .OrderBy(p => p.TIMESTAMP)
-                    .ToList();
-
-                var startTimeEntry = props.FirstOrDefault(p => p.KEY == "START_TIME");
-                DateTime startTime = DateTime.Parse(startTimeEntry?.VALUE ?? string.Empty);
-
-                var rowsReadEntry = props.FirstOrDefault(p => p.KEY == "Læste rækker");
-                int rowsRead = int.Parse(rowsReadEntry?.VALUE!);
-                var rowsWrittenEntry = props.FirstOrDefault(p => p.KEY == "Skrevne rækker");
-                int rowsWritten = int.Parse(rowsWrittenEntry?.VALUE!);
-
-                var timeEntries = props
-                    .Where(p => p.KEY!.StartsWith("TIME_"))
-                    .DistinctBy(p => p.KEY)
-                    .ToDictionary(p => p.KEY!, p => int.Parse(p.VALUE!));
-                var sqlEntries = props
-                    .Where(p => p.KEY!.StartsWith("sql_"))
-                    .DistinctBy(p => p.KEY)
-                    .ToDictionary(p => p.KEY!, p => int.Parse(p.VALUE!));
-                var readEntries = props
-                    .Where(p => p.KEY!.StartsWith("READ"))
-                    .DistinctBy(p => p.KEY)
-                    .ToDictionary(p => p.KEY!, p => int.Parse(p.VALUE!));
-                var writtenEntries = props
-                    .Where(p => p.KEY!.StartsWith("WRITE"))
-                    .DistinctBy(p => p.KEY)
-                    .ToDictionary(p => p.KEY!, p => int.Parse(p.VALUE!));
-
-                output.Add(new Manager
-                {
-                    StartTime = startTime,
-                    EndTime = endTime,
-                    Name = manager.MANAGER_NAME ?? "",
-                    RowId = manager.ROW_ID.GetValueOrDefault(),
-                    RowsRead = rowsRead,
-                    RowsWritten = rowsWritten,
-                    RowsReadDict = readEntries,
-                    RowsWrittenDict = writtenEntries,
-                    SqlCostDict = sqlEntries,
-                    TimeDict = timeEntries
-                });
-            }
+            List<Manager> output = GetManagers(managerNames, engineProperties);
 
             return output;
         }
 
+        private static List<Manager> GetManagers(List<string> names, List<ENGINE_PROPERTY> engineProperties)
+        {
+            List<Manager> output = new();
+
+            foreach (var name in names)
+            {
+                Manager manager = new() { Name = name };
+
+                var properties = engineProperties
+                    .Where(e => e.MANAGER == name)
+                    .ToList();
+
+                foreach (var entry in properties)
+                {
+                    // Properties
+                    if (entry.KEY == "START_TIME")
+                    {
+                        // If START_TIME is already set, the rest of the entries are for other executions
+                        if (manager.StartTime.HasValue)
+                        {
+                            break;
+                        }
+                        manager.StartTime = TryGetDateTime(entry);
+                    }
+                    else if (entry.KEY == "END_TIME")
+                    {
+                        manager.EndTime = TryGetDateTime(entry);
+                    }
+                    else if (Regex.IsMatch(entry.KEY!, "^L.ste r.kker$"))
+                    {
+                        manager.RowsRead = TryGetInt(entry);
+                    }
+                    else if (Regex.IsMatch(entry.KEY!, "^Skrevne r.kker$"))
+                    {
+                        manager.RowsWritten = TryGetInt(entry);
+                    }
+                    // Dictionaries
+                    else if (entry.KEY!.StartsWith("READ"))
+                    {
+                        manager.RowsReadDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
+                    }
+                    else if (entry.KEY!.StartsWith("WRITE"))
+                    {
+                        manager.RowsWrittenDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
+                    }
+                    else if (entry.KEY!.StartsWith("sql_"))
+                    {
+                        manager.SqlCostDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
+                    }
+                    else if (entry.KEY!.StartsWith("TIME_"))
+                    {
+                        manager.TimeDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
+                    }
+                    engineProperties.Remove(entry);
+                }
+                output.Add(manager);
+            }
+            return output;
+        }
+
+        private static DateTime? TryGetDateTime(ENGINE_PROPERTY entry)
+        {
+            if (DateTime.TryParse(entry?.VALUE, out DateTime result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        private static int? TryGetInt(ENGINE_PROPERTY entry)
+        {
+            if (int.TryParse(entry?.VALUE, out int result))
+            {
+                return result;
+            }
+            return null;
+        }
     }
 }
