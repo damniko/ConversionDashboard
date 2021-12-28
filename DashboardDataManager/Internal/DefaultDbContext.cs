@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using DataLibrary.Internal.EntityModels;
+﻿using DataLibrary.Internal.EntityModels;
+using Microsoft.EntityFrameworkCore;
 
-namespace DataLibrary.DataAccess
+namespace DataLibrary.Internal
 {
     /// <summary>
     /// Entity Framework scaffold of the ANS_CUSTOM_2 database.
@@ -34,7 +34,7 @@ namespace DataLibrary.DataAccess
         public virtual DbSet<TABLE_LOG> TABLE_LOG { get; set; } = null!;
         public virtual DbSet<VOTE_COMBINATION> VOTE_COMBINATION { get; set; } = null!;
         public virtual DbSet<VOTE_RESULT> VOTE_RESULT { get; set; } = null!;
-        public virtual DbSet<V_ENGINE_PROPERTY> V_ENGINE_PROPERTIEs { get; set; } = null!;
+        public virtual DbSet<V_ENGINE_PROPERTY> V_ENGINE_PROPERTIES { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

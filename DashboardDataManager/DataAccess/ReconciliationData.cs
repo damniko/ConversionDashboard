@@ -1,29 +1,16 @@
-﻿using DataLibrary.Helpers;
+﻿using DataLibrary.Internal;
 using DataLibrary.Internal.EntityModels;
 using DataLibrary.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace DataLibrary.DataAccess
 {
-    public class ReconciliationDAO
+    public class ReconciliationData
     {
-        private readonly IConfigHelper _configHelper;
+        internal IDataAccess Db { get; } = new EfDataAccess();
 
-        public ReconciliationDAO(IConfigHelper configHelper)
+        public List<Reconciliation> GetReconciliationsSinceDate(DateTime fromDate, string connStrKey)
         {
-            _configHelper = configHelper;
-        }
-
-        public List<Reconciliation> Get(string connectionStringKey, DateTime fromDate)
-        {
-            var connectionString = _configHelper.GetConnectionString(connectionStringKey);
-            var options = new DbContextOptionsBuilder()
-                .UseSqlServer(connectionString)
-                .Options;
-
-            using var db = new DefaultDbContext(options);
-
-            var output = (from r in db.AFSTEMNING
+            var output = (from r in Db.GetAfstemningTbl(connStrKey)
                           where r.AFSTEMTDATO > fromDate
                           orderby r.AFSTEMTDATO
                           select new Reconciliation

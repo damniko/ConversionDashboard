@@ -1,32 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
-using DataLibrary.Helpers;
+﻿using DataLibrary.Internal;
 using DataLibrary.Models;
 using DataLibrary.Internal.EntityModels;
 
 namespace DataLibrary.DataAccess
 {
-    public class LogDAO
+    public class LogData
     {
-        private readonly IConfigHelper _configHelper;
+        internal IDataAccess Db { get; } = new EfDataAccess();
 
-        public LogDAO(IConfigHelper configHelper)
+        public List<LogEntry> GetLogEntriesSinceDate(DateTime fromDate, string connStrKey)
         {
-            _configHelper = configHelper;
-        }
-
-        public List<LogEntry> Get(string connectionStringKey, DateTime fromDate)
-        {
-            var connectionString = _configHelper.GetConnectionString(connectionStringKey);
-            var options = new DbContextOptionsBuilder()
-                .UseSqlServer(connectionString)
-                .Options;
-
-            using var db = new DefaultDbContext(options);
-
-            var output = (from m in db.LOGGING
+            var contextData = Db.GetLoggingContextTbl(connStrKey);
+            var loggingData = Db.GetLoggingTbl(connStrKey);
+            var output = (from m in loggingData
                           where m.CREATED > fromDate
                           orderby m.CREATED
-                          join context in db.LOGGING_CONTEXT
+                          join context in contextData
                           on new { m.CONTEXT_ID, m.EXECUTION_ID } equals new { CONTEXT_ID = (long?)context.CONTEXT_ID, EXECUTION_ID = (long?)context.EXECUTION_ID }
                           select new LogEntry
                           {

@@ -1,50 +1,37 @@
 ﻿using System.Text.RegularExpressions;
-using DataLibrary.Helpers;
+using DataLibrary.Internal;
 using DataLibrary.Internal.EntityModels;
 using DataLibrary.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace DataLibrary.DataAccess
 {
-    public class ManagerDAO
+    public class ManagerData
     {
-        private readonly IConfigHelper _configHelper;
-
-        public ManagerDAO(IConfigHelper configHelper)
+        internal IDataAccess Db { get; } = new EfDataAccess();
+        
+        public IEnumerable<Manager> GetManagersSinceDate(DateTime fromDate, string connStrKey)
         {
-            _configHelper = configHelper;
-        }
-
-        public List<Manager> Get(string connStrKey, DateTime fromDate)
-        {
-            string connStr = _configHelper.GetConnectionString(connStrKey);
-            var options = new DbContextOptionsBuilder()
-                .UseSqlServer(connStr)
-                .Options;
-
-            using var db = new DefaultDbContext(options);
-
-            var engineProperties = (from e in db.ENGINE_PROPERTIES
+            var engineProperties = (from e in Db.GetEnginePropertiesTbl(connStrKey)
                                     where e.TIMESTAMP.HasValue && e.TIMESTAMP.Value > fromDate
                                     orderby e.TIMESTAMP
                                     select e)
                                     .ToList();
 
-            List<string> managerNames = engineProperties
+            var managerNames = engineProperties
                 .Where(e => e.KEY == "START_TIME")
                 .Select(e => e.MANAGER!)
                 .ToList();
 
-            List<Manager> output = GetManagers(managerNames, engineProperties);
+            var output = GetManagers(managerNames, engineProperties);
 
             return output;
         }
 
-        private static List<Manager> GetManagers(List<string> names, List<ENGINE_PROPERTY> engineProperties)
+        private static IEnumerable<Manager> GetManagers(List<string> names, List<ENGINE_PROPERTY> engineProperties)
         {
             List<Manager> output = new();
 
-            foreach (var name in names)
+            foreach (string name in names)
             {
                 Manager manager = new() { Name = name };
 

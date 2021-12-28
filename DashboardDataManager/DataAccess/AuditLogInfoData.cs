@@ -1,29 +1,19 @@
-﻿using DataLibrary.Helpers;
+﻿using DataLibrary.Internal;
 using DataLibrary.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace DataLibrary.DataAccess
 {
-    public class AuditLogInfoDAO
+    public class AuditLogInfoData
     {
-        private readonly IConfigHelper _configHelper;
-
-        public AuditLogInfoDAO(IConfigHelper configHelper)
+        internal IDataAccess Db { get; } = new EfDataAccess();
+        
+        public List<AuditLogInfo> GetAuditLogInfoSinceDate(DateTime fromDate, string connStrKey)
         {
-            _configHelper = configHelper;
-        }
-
-        public List<AuditLogInfo> Get(string connectionStringKey, DateTime fromDate)
-        {
-            string connectionString = _configHelper.GetConnectionString(connectionStringKey);
-            var options = new DbContextOptionsBuilder()
-                .UseSqlServer(connectionString)
-                .Options;
-
-            using var db = new DefaultDbContext(options);
-
-            var output = (from entry in db.AUDIT_LOGINFO
-                          join type in db.AUDIT_LOGINFO_TYPE
+            var logInfoData = Db.GetAuditLogInfoTbl(connStrKey);
+            var typesData = Db.GetAuditLogInfoTypesTbl(connStrKey);
+            
+            var output = (from entry in logInfoData
+                          join type in typesData
                           on entry.BUSINESSID equals type.ID
                           where entry.CREATED > fromDate
                           select new AuditLogInfo

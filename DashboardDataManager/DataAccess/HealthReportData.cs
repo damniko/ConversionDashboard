@@ -1,37 +1,25 @@
-﻿using DataLibrary.Helpers;
-using DataLibrary.Internal.EntityModels;
+﻿using DataLibrary.Internal;
 using DataLibrary.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace DataLibrary.DataAccess
 {
-    public class HealthReportDAO
+    public class HealthReportData
     {
-        private readonly IConfigHelper _configHelper;
+        internal IDataAccess Db { get; } = new EfDataAccess();
 
-        public HealthReportDAO(IConfigHelper configHelper)
-        {
-            _configHelper = configHelper;
-        }
-
+        // TODO - refactor this mofo, possibly into several parts (SystemInfo, CPU, Memory, Network), such that new ones can easily be added and modified later
+        // Procedure:
         // get all entries ordered by log time
         // make subportion of these entries (log time > fromdate)
         // for memory - for each mofo, find the last MEMORY_INIT entry that is older than the logtime, and calculate its value
 
-        public HealthReport Get(string connectionStringKey, DateTime fromDate)
+        public HealthReport GetHealthReportFromDate(DateTime fromDate, string connStrKey)
         {
-            var connectionString = _configHelper.GetConnectionString(connectionStringKey);
-            var options = new DbContextOptionsBuilder()
-                .UseSqlServer(connectionString)
-                .Options;
-
             HealthReport output = new();
 
-            List<HEALTH_REPORT> allEntries;
-            using (var db = new DefaultDbContext(options))
-            {
-                allEntries = db.HEALTH_REPORT.OrderBy(x => x.LOG_TIME).ToList();
-            }
+            var allEntries = Db.GetHealthReportTbl(connStrKey)
+                .OrderBy(x => x.LOG_TIME)
+                .ToList();
 
             if (allEntries.Any() == false)
             {

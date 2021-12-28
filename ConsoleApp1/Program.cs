@@ -1,7 +1,6 @@
 using DataLibrary.DataAccess;
-using DataLibrary.Helpers;
 
-var dao = new ManagerDAO(new ConfigHelper());
+var dao = new ManagerData();
 
-var result = dao.Get("Default", -1);
+var result = dao.GetManagersSinceDate(DateTime.Now.AddYears(-1), "Default");
 Console.WriteLine();
