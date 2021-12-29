@@ -2,6 +2,7 @@
 using DataLibrary.Internal.EFModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace DataLibrary.Internal;
 
@@ -11,11 +12,13 @@ namespace DataLibrary.Internal;
 public class EfDataAccess : IDataAccess
 {
     private readonly IConfiguration _config;
+    private readonly ILogger<EfDataAccess> _logger;
 
     // TODO - consider adding DefaultDbContext to DI
-    public EfDataAccess(IConfiguration config)
+    public EfDataAccess(IConfiguration config, ILogger<EfDataAccess> logger)
     {
         _config = config;
+        _logger = logger;
     }
     
     private string GetConnectionString(string connStrKey)
@@ -119,7 +122,15 @@ public class EfDataAccess : IDataAccess
     public IEnumerable<MANAGER> GetManagersTbl(string connStrKey)
     {
         using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.MANAGERS.ToList();    
+        try
+        {
+            return db.MANAGERS.ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Tried to access the {MANAGERS} table, but it does not exist in the selected database. Returning an empty list.", nameof(db.MANAGERS));
+            return new List<MANAGER>();
+        }
     }
 
     /// <inheritdoc />
