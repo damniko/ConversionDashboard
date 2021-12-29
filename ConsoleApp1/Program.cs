@@ -1,6 +1,17 @@
 using DataLibrary.DataAccess;
+using DataLibrary.DataAccess.Interfaces;
+using DataLibrary.Internal;
+using Microsoft.Extensions.Configuration;
 
-var dao = new ManagerData();
+IConfiguration config = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .AddEnvironmentVariables()
+    .Build();
 
-var result = dao.GetManagersSinceDate(DateTime.Now.AddYears(-1), "Default");
+IDataAccess dataAccess = new EfDataAccess(config);
+
+IReconciliationData reconciliationData = new ReconciliationData(dataAccess);
+
+var result = reconciliationData.GetReconciliationsSinceDate(DateTime.Now.AddYears(-1), "Default");
+
 Console.WriteLine();
