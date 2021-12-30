@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DesktopUI.ViewModels
+{
+    public class ShellViewModel
+    {
+        public string HelloWorld { get; set; } = "Hello World";
+    }
+}
