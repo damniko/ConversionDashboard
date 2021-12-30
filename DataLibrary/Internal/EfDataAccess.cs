@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using DataLibrary.Internal.EFModels;
+﻿using DataLibrary.Internal.EFModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

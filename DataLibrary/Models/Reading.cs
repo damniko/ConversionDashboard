@@ -3,6 +3,6 @@
     public class Reading
     {
         public DateTime Date { get; set; }
-        public double Value { get; set; }
+        public virtual double Value { get; set; }
     }
 }
