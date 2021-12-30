@@ -1,6 +1,6 @@
 ﻿using DataLibrary.Models;
 
-namespace DataLibrary.DataAccess
+namespace DataLibrary.DataAccess.Interfaces
 {
     public interface IMemoryData
     {

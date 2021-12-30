@@ -28,7 +28,7 @@ namespace DataLibrary.Tests
                 .Returns(new List<HEALTH_REPORT>());
 
             // Act
-            var readings = _sut.GetReadingsSinceDate(DateTime.MinValue, "");
+            var readings = _sut.GetReadingsSince(DateTime.MinValue, "");
 
             // Assert
             readings.Should().BeEmpty("because no entries exist");
@@ -48,7 +48,7 @@ namespace DataLibrary.Tests
                 .Returns(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var readings = _sut.GetReadingsSinceDate(DateTime.MinValue, "");
+            var readings = _sut.GetReadingsSince(DateTime.MinValue, "");
 
             // Assert
             readings.Should().BeEmpty("because the single entry does not have a valid value");
@@ -91,7 +91,7 @@ namespace DataLibrary.Tests
                 .Returns(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var readings = _sut.GetReadingsSinceDate(DateTime.MinValue, "");
+            var readings = _sut.GetReadingsSince(DateTime.MinValue, "");
 
             // Assert
             readings.Should().ContainSingle("because one entry exists")
@@ -124,7 +124,7 @@ namespace DataLibrary.Tests
                 .Returns(new List<HEALTH_REPORT> { firstEntry, secondEntry });
 
             // Act
-            var readings = _sut.GetReadingsSinceDate(DateTime.MinValue, "");
+            var readings = _sut.GetReadingsSince(DateTime.MinValue, "");
 
             // Assert
             readings.Should().HaveCount(2, "because two entries exist")

@@ -15,14 +15,12 @@ namespace DataLibrary.DataAccess
 
         public List<DestTable> GetDestTablesForManager(string manager, string connStrKey)
         {
-            var data = _db.GetDestTableTbl(connStrKey);
-
-            var output = (from d in data
+            var output = (from d in _db.GetDestTableTbl(connStrKey)
                           where d.MGR == manager
                           select new DestTable
                           {
-                              Manager = d.MGR,
-                              Table = d.TABLE_NAME
+                              Manager = d.MGR!,
+                              Table = d.TABLE_NAME!
                           }).ToList();
 
             return output;
