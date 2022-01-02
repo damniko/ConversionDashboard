@@ -7,11 +7,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
-using DataLibrary.Models;
+using System.Windows.Input;
+using DesktopUI.Controllers;
 using DesktopUI.Library;
+using DesktopUI.Models;
 using DesktopUI.Services;
+using DesktopUI.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 
 namespace DesktopUI.ViewModels
 {
@@ -19,28 +23,36 @@ namespace DesktopUI.ViewModels
     {
         private readonly CollectionViewSource _messagesViewSource;
         private readonly QueryTimerService _queryTimerService;
-        private bool _showInfo;
-        private bool _showWarning;
-        private bool _showError;
-        private bool _showFatal;
-        private bool _showReconciliation;
+        private readonly LogController _controller;
+        private DateTime _lastUpdated = System.Data.SqlTypes.SqlDateTime.MinValue.Value;
+        private bool _showInfo = true;
+        private bool _showWarning = true;
+        private bool _showError = true;
+        private bool _showFatal = true;
+        private bool _showReconciliation = true;
+        private bool _autoScroll;
 
-        public LogViewModel(QueryTimerService queryTimerService)
+        public LogViewModel(QueryTimerService queryTimerService, LogController controller)
         {
             _messagesViewSource = new CollectionViewSource
             {
                 Source = Entries,
-                SortDescriptions = { new SortDescription(nameof(LogEntry.Created), ListSortDirection.Ascending) }
             };
             _messagesViewSource.Filter += MessagesViewSource_Filter;
 
             _queryTimerService = queryTimerService;
+            _controller = controller;
             _queryTimerService.LogTimer.Elapsed += LogTimer_Elapsed;
         }
 
-        public List<LogEntry> Entries { get; } = new();
+        #region Properties
+        public ObservableList<LogEntryDto> Entries { get; } = new();
         public ICollectionView MessagesView => _messagesViewSource.View;
-        #region Filter buttons
+        public bool AutoScroll
+        {
+            get => _autoScroll;
+            set => SetProperty(ref _autoScroll, value);
+        }
         public bool ShowInfo
         {
             get => _showInfo;
@@ -83,9 +95,22 @@ namespace DesktopUI.ViewModels
         }
         #endregion
 
+        #region Commands
+        public ICommand EnableAutoScrollCommand => new RelayCommand(() => 
+        {
+            AutoScroll = true;
+            Trace.WriteLine("tru");
+        }, () => AutoScroll == false);
+        public ICommand DisableAutoScrollCommand => new RelayCommand(() =>
+        {
+            AutoScroll = false;
+            Trace.WriteLine("fal");
+        }, () => AutoScroll == true);
+        #endregion
+
         private void MessagesViewSource_Filter(object sender, FilterEventArgs e)
         {
-            LogLevel level = (e.Item as LogEntry)!.Level;
+            LogLevel level = (e.Item as LogEntryDto)!.Level;
             e.Accepted = (ShowInfo && level.HasFlag(LogLevel.Info))
                 || (ShowWarning && level.HasFlag(LogLevel.Warn))
                 || (ShowError && level.HasFlag(LogLevel.Error))
@@ -95,15 +120,19 @@ namespace DesktopUI.ViewModels
 
         private void LogTimer_Elapsed(DateTime date)
         {
-            Trace.WriteLine($"Log timer elapsed at {date}");
+            var newEntries = _controller.GetLogEntries(_lastUpdated);
+            _lastUpdated = date;
 
-            // get updated data from the data service
+            if(newEntries.Any() is false)
+            {
+                return;
+            }
 
             App.Current.Dispatcher.Invoke(() =>
             {
                 using (MessagesView.DeferRefresh())
                 {
-                    // Entries.AddRange(...);
+                    Entries.AddRange(newEntries);
                 }
                 MessagesView.Refresh();
             });

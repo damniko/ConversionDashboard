@@ -9,7 +9,7 @@ namespace DataLibrary.DataAccess
     {
         private readonly IDataAccess _db;
 
-        public MemoryData(IDataAccess db, ILogger<MemoryData> logger)
+        public MemoryData(IDataAccess db)
         {
             _db = db;
         }

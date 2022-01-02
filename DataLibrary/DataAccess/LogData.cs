@@ -14,7 +14,7 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<LogEntry> GetLogEntriesSinceDate(DateTime fromDate, string connStrKey)
+        public List<LogEntry> GetLogEntries(DateTime fromDate, string connStrKey)
         {
             var contextData = _db.GetLoggingContextTbl(connStrKey);
             var loggingData = _db.GetLoggingTbl(connStrKey);

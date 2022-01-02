@@ -5,10 +5,19 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using AutoMapper;
+using DataLibrary.DataAccess;
+using DataLibrary.DataAccess.Interfaces;
+using DataLibrary.Internal;
+using DataLibrary.Models;
+using DesktopUI.Controllers;
 using DesktopUI.Library;
+using DesktopUI.Models;
 using DesktopUI.Services;
 using DesktopUI.ViewModels;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace DesktopUI
 {
@@ -39,12 +48,19 @@ namespace DesktopUI
         {
             var services = new ServiceCollection();
 
+            services.AddAutoMapper(typeof(App));
+
             services
                 .AddSingleton<QueryTimerService>();
 
             services
                 .AddTransient<IQueryTimer, QueryTimer>()
+                .AddTransient<IDataAccess, EfDataAccess>()
+                .AddTransient<IConfiguration, Config>()
+                .AddTransient<ILogData, LogData>()
                 .AddTransient<ControlBarViewModel>()
+                .AddTransient<LogController>()
+                .AddTransient<ReconciliationViewModel>()
                 .AddTransient<LogViewModel>()
                 .AddTransient<ShellViewModel>();
 

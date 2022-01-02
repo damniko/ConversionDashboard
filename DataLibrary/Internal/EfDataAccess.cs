@@ -11,18 +11,17 @@ namespace DataLibrary.Internal;
 public class EfDataAccess : IDataAccess
 {
     private readonly IConfiguration _config;
-    private readonly ILogger<EfDataAccess> _logger;
 
     // TODO - consider adding DefaultDbContext to DI
-    public EfDataAccess(IConfiguration config, ILogger<EfDataAccess> logger)
+    public EfDataAccess(IConfiguration config)
     {
         _config = config;
-        _logger = logger;
     }
     
     private string GetConnectionString(string connStrKey)
     {
-        return _config.GetConnectionString(connStrKey);
+        return @"Data Source=NIKOLAJ-DAM-LEN\SQLEXPRESS;Initial Catalog=ANS_CUSTOM_2_DEST;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False"; 
+            //_config.GetConnectionString(connStrKey);
     }
 
     private DbContextOptions GetDbOptions(string connStrKey)
@@ -127,7 +126,7 @@ public class EfDataAccess : IDataAccess
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Tried to access the {MANAGERS} table, but it does not exist in the selected database. Returning an empty list.", nameof(db.MANAGERS));
+            //_logger.LogWarning(ex, "Tried to access the {MANAGERS} table, but it does not exist in the selected database. Returning an empty list.", nameof(db.MANAGERS));
             return new List<MANAGER>();
         }
     }

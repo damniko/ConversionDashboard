@@ -23,5 +23,7 @@
 
         <local:LogView Grid.Row="1"
                        Grid.Column="1"/>
+
+        <local:ReconciliationView Grid.Row="2"/>
     </Grid>
 </Window>

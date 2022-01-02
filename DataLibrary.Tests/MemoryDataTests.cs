@@ -14,13 +14,11 @@ namespace DataLibrary.Tests
     {
         private readonly MemoryData _sut;
         private readonly Mock<IDataAccess> _dbMock;
-        private readonly Mock<ILogger<MemoryData>> _loggerMock;
 
         public MemoryDataTests()
         {
             _dbMock = new Mock<IDataAccess>();
-            _loggerMock = new Mock<ILogger<MemoryData>>();
-            _sut = new MemoryData(_dbMock.Object, _loggerMock.Object);
+            _sut = new MemoryData(_dbMock.Object);
         }
 
         [Theory]
