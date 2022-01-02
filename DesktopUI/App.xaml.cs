@@ -28,7 +28,23 @@ namespace DesktopUI
     {
         public App()
         {
+            Configuration = GetConfiguration();
             Services = ConfigureServices();
+        }
+
+        public IConfiguration Configuration { get; }
+
+        public IConfiguration GetConfiguration()
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Environment.CurrentDirectory)
+                .AddJsonFile("appsettings.json");
+#if DEBUG
+            builder.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+#else
+            builder.AddJsonFile("appsettings.Production.json", optional: true, reloadOnChange: true);
+#endif
+            return builder.Build();
         }
 
         /// <summary>
@@ -44,19 +60,23 @@ namespace DesktopUI
         /// <summary>
         /// Configures the services for the application.
         /// </summary>
-        private static IServiceProvider ConfigureServices()
+        private IServiceProvider ConfigureServices()
         {
             var services = new ServiceCollection();
 
             services.AddAutoMapper(typeof(App));
 
-            services
-                .AddSingleton<QueryTimerService>();
+            services.AddLogging(builder =>
+            {
+                builder.AddConfiguration(Configuration.GetSection("Debug"))
+                    .AddDebug();   
+            });
 
             services
+                .AddSingleton(provider => GetConfiguration())
+                .AddSingleton<QueryTimerService>()
                 .AddTransient<IQueryTimer, QueryTimer>()
                 .AddTransient<IDataAccess, EfDataAccess>()
-                .AddTransient<IConfiguration, Config>()
                 .AddTransient<ILogData, LogData>()
                 .AddTransient<ControlBarViewModel>()
                 .AddTransient<LogController>()
