@@ -8,19 +8,24 @@
              d:DesignHeight="225" d:DesignWidth="400">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="5*"/>
-            <ColumnDefinition Width="10"/>
             <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="18"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
         <!-- Header -->
         <TextBlock Text="Reconciliations"/>
         <StackPanel Orientation="Horizontal"
+                    Grid.Column="1"
                     HorizontalAlignment="Right">
+            <ToggleButton IsChecked="{Binding ShowEmpty}"
+                          Content="Empty"/>
             <ToggleButton IsChecked="{Binding ShowOk}"
                           Content="Ok"/>
             <ToggleButton IsChecked="{Binding ShowDisabled}"
@@ -31,10 +36,15 @@
                           Content="Fail Mimatch"/>
         </StackPanel>
         
-        <TextBlock Text="Details" Grid.Column="2"/>
+        <TextBlock Text="Details" Grid.Column="3"/>
         
         <!-- Body -->
-        <TreeView Grid.Row="1"
+        <TextBox Grid.Row="1"
+                 Grid.Column="1"
+                 VerticalAlignment="Top"
+                 Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged, Delay=100}"/>
+        <TreeView Grid.Row="2"
+                  Grid.ColumnSpan="2"
                   ItemsSource="{Binding GroupingsView}"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.VirtualizationMode="Recycling"
@@ -53,30 +63,5 @@
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
-        <!--<ListView Grid.Row="1"
-                  ItemsSource="{Binding GroupingsView}">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn DisplayMemberBinding="{Binding Name}"/>
-                    <GridView.ColumnHeaderContainerStyle>
-                        <Style TargetType="GridViewColumnHeader">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                        </Style>
-                    </GridView.ColumnHeaderContainerStyle>
-                </GridView>
-            </ListView.View>
-            <ListView.GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.HeaderTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Item.Date}"/>
-                                <TextBlock Text="{Binding Name}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </GroupStyle.HeaderTemplate>
-                </GroupStyle>
-            </ListView.GroupStyle>
-        </ListView>-->
     </Grid>
 </UserControl>

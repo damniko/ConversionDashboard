@@ -14,26 +14,35 @@ namespace DesktopUI.Models
     public class ReconciliationGrouping : ObservableObject
     {
         private readonly CollectionViewSource _reconciliationsViewSource;
+        private string _name = string.Empty;
 
         public ReconciliationGrouping(FilterEventHandler filter)
         {
-            _reconciliationsViewSource = ConfigureViewSource(filter);    
+            _reconciliationsViewSource = ConfigureViewSource(filter);
         }
 
-        public string Name { get; set; } = string.Empty;
+        public string Name
+        {
+            get => _name; 
+            set
+            {
+                string shortName = string.Join('.', value.Split('.').TakeLast(2));
+                SetProperty(ref _name, shortName);
+            }
+        }
         public List<ReconciliationDto> Reconciliations { get; } = new();
         public ICollectionView ReconciliationsView => _reconciliationsViewSource.View;
 
         public void AddReconciliations(IEnumerable<ReconciliationDto> items)
         {
-            using (ReconciliationsView.DeferRefresh())
+            _reconciliationsViewSource.Dispatcher.Invoke(() =>
             {
-                foreach(var item in items)
+                using (_reconciliationsViewSource.DeferRefresh())
                 {
-                    Reconciliations.Add(item);
+                    Reconciliations.AddRange(items);
                 }
-            }
-            ReconciliationsView.Refresh();
+                ReconciliationsView.Refresh();
+            });
         }
 
         private CollectionViewSource ConfigureViewSource(FilterEventHandler filter)

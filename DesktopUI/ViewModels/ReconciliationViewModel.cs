@@ -15,22 +15,43 @@ namespace DesktopUI.ViewModels
     {
         private readonly CollectionViewSource _groupingsViewSource;
         private readonly ReconciliationController _controller;
+        private readonly object _updateLock = new();
         private DateTime _lastUpdated = System.Data.SqlTypes.SqlDateTime.MinValue.Value;
-        private bool _showOk;
+        private bool _showEmpty = false;
+        private bool _showOk = false;
         private bool _showDisabled = true;
         private bool _showFailed = true;
         private bool _showFailMismatch = true;
+        private string _searchTerm = string.Empty;
 
         public ReconciliationViewModel(QueryTimerService queryTimerService, ReconciliationController controller)
         {
             _groupingsViewSource = ConfigureViewSource();
-            queryTimerService.ReconciliationTimer.Elapsed += ReconciliationTimer_Elapsed;
+            queryTimerService.ReconciliationTimer.Elapsed += UpdateData;
             _controller = controller;
         }
 
         #region Properties
-        public ObservableList<ReconciliationGrouping> Groupings { get; } = new();
+        public List<ReconciliationGrouping> Groupings { get; } = new();
         public ICollectionView GroupingsView => _groupingsViewSource.View;
+        public string SearchTerm
+        {
+            get => _searchTerm;
+            set
+            {
+                SetProperty(ref _searchTerm, value);
+                GroupingsView.Refresh();
+            }
+        }
+        public bool ShowEmpty
+        {
+            get => _showEmpty;
+            set
+            {
+                SetProperty(ref _showEmpty, value);
+                GroupingsView.Refresh();
+            }
+        }
         public bool ShowOk
         {
             get => _showOk;
@@ -69,6 +90,52 @@ namespace DesktopUI.ViewModels
         }
         #endregion
 
+        public void UpdateData(DateTime date)
+        {
+            lock (_updateLock)
+            {
+                var newEntries = _controller.GetReconciliations(_lastUpdated);
+                _lastUpdated = date;
+
+                if (newEntries.Any() is false) return;
+
+                // TODO - consider doing this in the controller instead (using AutoMapper)
+                var groupDict = new Dictionary<string, List<ReconciliationDto>>();
+                foreach (var entry in newEntries)
+                {
+                    if (groupDict.ContainsKey(entry.Manager))
+                    {
+                        groupDict[entry.Manager].Add(entry);
+                    }
+                    else
+                    {
+                        groupDict.Add(entry.Manager, new() { entry });
+                    }
+                }
+
+                _groupingsViewSource.Dispatcher.Invoke(() =>
+                {
+                    using (_groupingsViewSource.DeferRefresh())
+                    {
+                        foreach (var key in groupDict.Keys)
+                        {
+                            var grouping = Groupings.FirstOrDefault(x => x.Name == key);
+                            if (grouping is null)
+                            {
+                                grouping = new ReconciliationGrouping(Reconciliations_Filter)
+                                {
+                                    Name = key,
+                                };
+                                Groupings.Add(grouping);
+                            }
+                            grouping.AddReconciliations(groupDict[key]);
+                        }
+                    }
+                    GroupingsView.Refresh();
+                });
+            }
+        }
+
         private CollectionViewSource ConfigureViewSource()
         {
             var viewSource = new CollectionViewSource
@@ -84,54 +151,8 @@ namespace DesktopUI.ViewModels
             if(e.Item is ReconciliationGrouping grouping)
             {
                 grouping.ReconciliationsView.Refresh();
-                e.Accepted = grouping.ReconciliationsView.IsEmpty is false;
+                e.Accepted = grouping.Name.Contains(SearchTerm) && (!grouping.ReconciliationsView.IsEmpty || ShowEmpty);
             }
-        }
-
-        private void ReconciliationTimer_Elapsed(DateTime date)
-        {
-            var newEntries = _controller.GetReconciliations(_lastUpdated);
-            _lastUpdated = date;
-
-            if(newEntries.Any() is false) return;
-
-            // TODO - consider doing this in the controller instead (using AutoMapper)
-            var groupDict = new Dictionary<string, List<ReconciliationDto>>();
-            foreach(var entry in newEntries)
-            {
-                if(groupDict.ContainsKey(entry.Manager))
-                {
-                    groupDict[entry.Manager].Add(entry);
-                }
-                else
-                {
-                    groupDict.Add(entry.Manager, new() { entry });
-                }
-            }
-
-            App.Current.Dispatcher.Invoke(() =>
-            {
-                using (GroupingsView.DeferRefresh())
-                {
-                    foreach(var key in groupDict.Keys)
-                    {
-                        if(Groupings.Find(x => x.Name == key) is ReconciliationGrouping grouping)
-                        {
-                            grouping.AddReconciliations(groupDict[key]);
-                        }
-                        else
-                        {
-                            grouping = new ReconciliationGrouping(Reconciliations_Filter)
-                            {
-                                Name = key,
-                            };
-                            grouping.AddReconciliations(groupDict[key]);
-                            Groupings.Add(grouping);
-                        }
-                    }
-                }
-                GroupingsView.Refresh();
-            });
         }
 
         private void Reconciliations_Filter(object sender, FilterEventArgs e)
