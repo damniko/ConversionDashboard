@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Data;
+using System.Windows.Input;
 using DesktopUI.Controllers;
 using DesktopUI.Library;
 using DesktopUI.Models;
 using DesktopUI.Tools;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 
 namespace DesktopUI.ViewModels
 {
@@ -32,7 +34,7 @@ namespace DesktopUI.ViewModels
         }
 
         #region Properties
-        public List<ReconciliationGrouping> Groupings { get; } = new();
+        public List<ReconciliationGroupingNode> Groupings { get; } = new();
         public ICollectionView GroupingsView => _groupingsViewSource.View;
         public string SearchTerm
         {
@@ -90,6 +92,8 @@ namespace DesktopUI.ViewModels
         }
         #endregion
 
+        public ICommand RefreshCommand => new RelayCommand(() => UpdateData(DateTime.Now));
+
         public void UpdateData(DateTime date)
         {
             lock (_updateLock)
@@ -119,13 +123,10 @@ namespace DesktopUI.ViewModels
                     {
                         foreach (var key in groupDict.Keys)
                         {
-                            var grouping = Groupings.FirstOrDefault(x => x.Name == key);
+                            var grouping = Groupings.FirstOrDefault(x => x.Item == string.Join('.', key.Split('.').TakeLast(2))); // TODO - refactor this
                             if (grouping is null)
                             {
-                                grouping = new ReconciliationGrouping(Reconciliations_Filter)
-                                {
-                                    Name = key,
-                                };
+                                grouping = new ReconciliationGroupingNode(key, Reconciliations_Filter);
                                 Groupings.Add(grouping);
                             }
                             grouping.AddReconciliations(groupDict[key]);
@@ -148,16 +149,16 @@ namespace DesktopUI.ViewModels
 
         private void Groupings_Filter(object sender, FilterEventArgs e)
         {
-            if(e.Item is ReconciliationGrouping grouping)
+            if(e.Item is ReconciliationGroupingNode grouping)
             {
                 grouping.ReconciliationsView.Refresh();
-                e.Accepted = grouping.Name.Contains(SearchTerm) && (!grouping.ReconciliationsView.IsEmpty || ShowEmpty);
+                e.Accepted = grouping.Item.Contains(SearchTerm) && (!grouping.ReconciliationsView.IsEmpty || ShowEmpty);
             }
         }
 
         private void Reconciliations_Filter(object sender, FilterEventArgs e)
         {
-            ReconciliationResult result = (e.Item as ReconciliationDto)!.Result;
+            ReconciliationResult result = (e.Item as Node<ReconciliationDto>)!.Item.Result;
             e.Accepted = (ShowOk && result is ReconciliationResult.Ok)
                 || (ShowDisabled && result is ReconciliationResult.Disabled)
                 || (ShowFailed && result is ReconciliationResult.Failed)

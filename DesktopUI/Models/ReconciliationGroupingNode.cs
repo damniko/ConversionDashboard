@@ -11,35 +11,29 @@ using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace DesktopUI.Models
 {
-    public class ReconciliationGrouping : ObservableObject
+    public class ReconciliationGroupingNode : Node<string>
     {
         private readonly CollectionViewSource _reconciliationsViewSource;
         private string _name = string.Empty;
 
-        public ReconciliationGrouping(FilterEventHandler filter)
+        public ReconciliationGroupingNode(string item, FilterEventHandler filter) 
+            : base(string.Join('.', item.Split('.').TakeLast(2)))
         {
             _reconciliationsViewSource = ConfigureViewSource(filter);
         }
 
-        public string Name
-        {
-            get => _name; 
-            set
-            {
-                string shortName = string.Join('.', value.Split('.').TakeLast(2));
-                SetProperty(ref _name, shortName);
-            }
-        }
-        public List<ReconciliationDto> Reconciliations { get; } = new();
+        public List<Node<ReconciliationDto>> Reconciliations { get; } = new();
         public ICollectionView ReconciliationsView => _reconciliationsViewSource.View;
 
         public void AddReconciliations(IEnumerable<ReconciliationDto> items)
         {
+            var nodes = items.Select(x => new Node<ReconciliationDto>(x));
+
             _reconciliationsViewSource.Dispatcher.Invoke(() =>
             {
                 using (_reconciliationsViewSource.DeferRefresh())
                 {
-                    Reconciliations.AddRange(items);
+                    Reconciliations.AddRange(nodes);
                 }
                 ReconciliationsView.Refresh();
             });
