@@ -4,6 +4,6 @@ namespace DataLibrary.DataAccess.Interfaces
 {
     public interface IReconciliationData
     {
-        List<Reconciliation> GetReconciliationsSinceDate(DateTime fromDate, string connStrKey);
+        List<Reconciliation> GetSince(DateTime fromDate, string connStrKey);
     }
 }

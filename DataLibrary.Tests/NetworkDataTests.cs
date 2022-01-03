@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using DataLibrary.DataAccess;
-using DataLibrary.Internal;
-using DataLibrary.Internal.EFModels;
+using DataLibrary.DataAccess.Interfaces;
 using DataLibrary.Models;
+using DataLibrary.Models.Database;
 using FluentAssertions;
 using Moq;
 using Xunit;

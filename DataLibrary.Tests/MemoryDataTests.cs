@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using DataLibrary.DataAccess;
-using DataLibrary.Internal;
-using DataLibrary.Internal.EFModels;
+using DataLibrary.DataAccess.Interfaces;
+using DataLibrary.Models.Database;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -14,11 +14,13 @@ namespace DataLibrary.Tests
     {
         private readonly MemoryData _sut;
         private readonly Mock<IDataAccess> _dbMock;
+        private readonly Mock<ILogger<MemoryData>> _loggerMock;
 
         public MemoryDataTests()
         {
             _dbMock = new Mock<IDataAccess>();
-            _sut = new MemoryData(_dbMock.Object);
+            _loggerMock = new Mock<ILogger<MemoryData>>();
+            _sut = new MemoryData(_dbMock.Object, _loggerMock.Object);
         }
 
         [Theory]

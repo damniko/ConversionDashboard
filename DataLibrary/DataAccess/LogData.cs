@@ -1,7 +1,6 @@
-﻿using DataLibrary.Internal;
-using DataLibrary.Models;
+﻿using DataLibrary.Models;
 using DataLibrary.DataAccess.Interfaces;
-using DataLibrary.Internal.EFModels;
+using DataLibrary.Models.Database;
 
 namespace DataLibrary.DataAccess
 {
@@ -14,7 +13,7 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<LogEntry> GetLogEntries(DateTime fromDate, string connStrKey)
+        public List<LogEntry> GetSince(DateTime fromDate, string connStrKey)
         {
             var contextData = _db.GetLoggingContextTbl(connStrKey);
             var loggingData = _db.GetLoggingTbl(connStrKey);

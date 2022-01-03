@@ -1,8 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using DataLibrary.DataAccess.Interfaces;
-using DataLibrary.Internal;
-using DataLibrary.Internal.EFModels;
 using DataLibrary.Models;
+using DataLibrary.Models.Database;
 
 namespace DataLibrary.DataAccess
 {

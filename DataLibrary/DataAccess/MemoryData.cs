@@ -1,5 +1,4 @@
 ﻿using DataLibrary.DataAccess.Interfaces;
-using DataLibrary.Internal;
 using DataLibrary.Models;
 using Microsoft.Extensions.Logging;
 
@@ -8,10 +7,12 @@ namespace DataLibrary.DataAccess
     public class MemoryData : IMemoryData
     {
         private readonly IDataAccess _db;
+        private readonly ILogger<MemoryData> _logger;
 
-        public MemoryData(IDataAccess db)
+        public MemoryData(IDataAccess db, ILogger<MemoryData> logger)
         {
             _db = db;
+            _logger = logger;
         }
 
         public List<Reading> GetReadingsSinceDate(DateTime fromDate, string connStrKey)
@@ -32,7 +33,7 @@ namespace DataLibrary.DataAccess
                 var totalEntry = allEntries.LastOrDefault(e => e.REPORT_TYPE == "MEMORY_INIT" && e.LOG_TIME < entry.LOG_TIME!.Value);
                 if (totalEntry is null)
                 {
-                    // TODO - Log this
+                    _logger.LogWarning("Could not find a HEALTH_REPORT entry with [REPORT_TYPE]=MEMORY_INIT and [REPORT_KEY]=TOTAL with a [LOG_TIME] earlier than {LogTime}. Will skip memory reading.", entry.LOG_TIME);
                     continue;
                 }
                 var reading = new MemoryReading

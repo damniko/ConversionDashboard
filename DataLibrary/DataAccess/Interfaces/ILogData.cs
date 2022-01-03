@@ -4,6 +4,6 @@ namespace DataLibrary.DataAccess.Interfaces
 {
     public interface ILogData
     {
-        List<LogEntry> GetLogEntries(DateTime fromDate, string connStrKey);
+        List<LogEntry> GetSince(DateTime fromDate, string connStrKey);
     }
 }

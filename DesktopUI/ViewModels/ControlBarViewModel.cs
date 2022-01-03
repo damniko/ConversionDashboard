@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using DesktopUI.Services;
+﻿using System.Windows.Input;
+using DesktopUI.Library;
+using Microsoft.Extensions.Logging;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 
@@ -14,11 +9,13 @@ namespace DesktopUI.ViewModels
     public class ControlBarViewModel : ObservableObject
     {
         private readonly QueryTimerService _timerService;
+        private readonly ILogger<ControlBarViewModel> _logger;
         private bool _isMonitoring;
 
-        public ControlBarViewModel(QueryTimerService timerService)
+        public ControlBarViewModel(QueryTimerService timerService, ILogger<ControlBarViewModel> logger)
         {
             _timerService = timerService;
+            _logger = logger;
         }
 
         public bool IsMonitoring
@@ -40,15 +37,14 @@ namespace DesktopUI.ViewModels
 
         private void StartMonitoring()
         {
-            // TODO - add logging service here
-            Trace.WriteLine("Starting all timers");
+            _logger.LogInformation("Starting all timers");
             _timerService.StartAll();
             IsMonitoring = true;
         }
 
         private void StopMonitoring()
         {
-            Trace.WriteLine("Stopping all timers");
+            _logger.LogInformation("Stopping all timers");
             _timerService.StopAll();
             IsMonitoring = false;
         }

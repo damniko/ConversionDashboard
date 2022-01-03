@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
 using DataLibrary.DataAccess.Interfaces;
 using DesktopUI.Models;
@@ -14,7 +11,7 @@ namespace DesktopUI.Controllers
         private readonly ILogData _logData;
         private readonly IMapper _mapper;
 
-        public LogController(ILogData logData ,IMapper mapper)
+        public LogController(ILogData logData, IMapper mapper)
         {
             _logData = logData;
             _mapper = mapper;
@@ -22,8 +19,8 @@ namespace DesktopUI.Controllers
 
         public List<LogEntryDto> GetLogEntries(DateTime fromDate)
         {
-            // TODO - add conn string to settings
-            var logEntries = _logData.GetLogEntries(fromDate, "Default");
+            // TODO - make the connection string changeable through settings
+            var logEntries = _logData.GetSince(fromDate, "Default");
             
             List<LogEntryDto> result = _mapper.Map<List<LogEntryDto>>(logEntries);
 

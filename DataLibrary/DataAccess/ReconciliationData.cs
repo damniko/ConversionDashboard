@@ -1,7 +1,6 @@
 ﻿using DataLibrary.DataAccess.Interfaces;
-using DataLibrary.Internal;
-using DataLibrary.Internal.EFModels;
 using DataLibrary.Models;
+using DataLibrary.Models.Database;
 
 namespace DataLibrary.DataAccess
 {
@@ -14,7 +13,7 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<Reconciliation> GetReconciliationsSinceDate(DateTime fromDate, string connStrKey)
+        public List<Reconciliation> GetSince(DateTime fromDate, string connStrKey)
         {
             var output = (from r in _db.GetAfstemningTbl(connStrKey)
                           where r.AFSTEMTDATO > fromDate

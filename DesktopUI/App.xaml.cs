@@ -1,19 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
-using AutoMapper;
 using DataLibrary.DataAccess;
 using DataLibrary.DataAccess.Interfaces;
-using DataLibrary.Internal;
-using DataLibrary.Models;
 using DesktopUI.Controllers;
 using DesktopUI.Library;
-using DesktopUI.Models;
-using DesktopUI.Services;
 using DesktopUI.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -78,11 +68,13 @@ namespace DesktopUI
                 .AddTransient<IQueryTimer, QueryTimer>()
                 .AddTransient<IDataAccess, EfDataAccess>()
                 .AddTransient<ILogData, LogData>()
+                .AddTransient<IReconciliationData, ReconciliationData>()
                 .AddTransient<ControlBarViewModel>()
                 .AddTransient<LogController>()
+                .AddTransient<ReconciliationController>()
                 .AddTransient<ReconciliationViewModel>()
                 .AddTransient<LogViewModel>()
-                .AddTransient<ShellViewModel>();
+                .AddTransient<MainViewModel>();
 
             return services.BuildServiceProvider();
         }

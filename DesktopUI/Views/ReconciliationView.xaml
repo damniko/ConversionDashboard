@@ -34,12 +34,30 @@
         <TextBlock Text="Details" Grid.Column="2"/>
         
         <!-- Body -->
-        <ListView Grid.Row="1"
-                  ItemsSource="{Binding ReconciliationsView}">
+        <TreeView Grid.Row="1"
+                  ItemsSource="{Binding GroupingsView}"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  VirtualizingPanel.ScrollUnit="Pixel">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding ReconciliationsView}">
+                    <TextBlock Text="{Binding Name}"/>
+                    <HierarchicalDataTemplate.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Date}"/>
+                                <TextBlock Text="{Binding Description}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </HierarchicalDataTemplate.ItemTemplate>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+        <!--<ListView Grid.Row="1"
+                  ItemsSource="{Binding GroupingsView}">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn DisplayMemberBinding="{Binding Description}"
-                                    Header="Description"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Name}"/>
                     <GridView.ColumnHeaderContainerStyle>
                         <Style TargetType="GridViewColumnHeader">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -51,11 +69,14 @@
                 <GroupStyle>
                     <GroupStyle.HeaderTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Name}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Item.Date}"/>
+                                <TextBlock Text="{Binding Name}"/>
+                            </StackPanel>
                         </DataTemplate>
                     </GroupStyle.HeaderTemplate>
                 </GroupStyle>
             </ListView.GroupStyle>
-        </ListView>
+        </ListView>-->
     </Grid>
 </UserControl>
