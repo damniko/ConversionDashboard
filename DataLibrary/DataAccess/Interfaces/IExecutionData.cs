@@ -4,6 +4,7 @@ namespace DataLibrary.DataAccess.Interfaces
 {
     public interface IExecutionData
     {
-        List<Execution> GetExecutionsSinceDate(DateTime fromDate, string connStrKey);
+        List<Execution> GetSince(DateTime fromDate, string connStrKey);
+        List<Execution> GetAll(string connStrKey);
     }
 }

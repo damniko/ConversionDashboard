@@ -12,12 +12,11 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<Execution> GetExecutionsSinceDate(DateTime fromDate, string connStrKey)
+        public List<Execution> GetSince(DateTime fromDate, string connStrKey)
         {
-            var contextData = _db.GetLoggingContextTbl(connStrKey).ToList();
             var executionData = _db.GetExecutionTbl(connStrKey);
 
-            var output = (from e in executionData
+            var entries = (from e in executionData
                           where e.CREATED > fromDate
                           orderby e.CREATED
                           select new Execution
@@ -27,10 +26,20 @@ namespace DataLibrary.DataAccess
                               StartTime = e.CREATED.GetValueOrDefault(),
                           }).ToList();
 
-            // Try to assign end-times and context ID dictionaries to each execution
-            foreach (var execution in output)
+            var output = AssignEndTimesAndContextDictionaries(entries, connStrKey);
+            
+            return output;
+        }
+
+        public List<Execution> GetAll(string connStrKey) 
+            => GetSince(System.Data.SqlTypes.SqlDateTime.MinValue.Value, connStrKey);
+    
+        private List<Execution> AssignEndTimesAndContextDictionaries(List<Execution> entries, string connStrKey)
+        {
+            var contextData = _db.GetLoggingContextTbl(connStrKey).ToList();
+            foreach (var execution in entries)
             {
-                var prev = output.FirstOrDefault(e => e.Id == execution.Id - 1);
+                var prev = entries.FirstOrDefault(e => e.Id == execution.Id - 1);
                 if (prev != null)
                 {
                     prev.EndTime = execution.StartTime;
@@ -41,7 +50,7 @@ namespace DataLibrary.DataAccess
                             .ToDictionary(c => c.CONTEXT_ID, c => c.CONTEXT);
                 execution.ContextDict = dict;
             }
-            return output;
+            return entries;
         }
     }
 }

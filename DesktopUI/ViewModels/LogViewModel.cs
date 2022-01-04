@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -40,7 +41,7 @@ namespace DesktopUI.ViewModels
         }
 
         #region Properties
-        public ObservableList<LogEntryDto> Entries { get; } = new();
+        public List<LogEntryDto> Entries { get; } = new();
         public ICollectionView MessagesView => _messagesViewSource.View;
         public bool AutoScroll
         {

@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataLibrary.Tests", "DataLi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesktopUI", "DesktopUI\DesktopUI.csproj", "{A0162291-501A-4BD8-A169-01F422A0A588}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesktopUI.Library", "DesktopUI.Library\DesktopUI.Library.csproj", "{5DDA604A-6C6D-4657-8EA9-8146C0C57A91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesktopUI.Library", "DesktopUI.Library\DesktopUI.Library.csproj", "{5DDA604A-6C6D-4657-8EA9-8146C0C57A91}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesktopUI.Tests", "DesktopUI.Library.Tests\DesktopUI.Tests.csproj", "{9F37598F-0315-494D-8D38-FE2D4D91C07D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{5DDA604A-6C6D-4657-8EA9-8146C0C57A91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DDA604A-6C6D-4657-8EA9-8146C0C57A91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DDA604A-6C6D-4657-8EA9-8146C0C57A91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F37598F-0315-494D-8D38-FE2D4D91C07D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F37598F-0315-494D-8D38-FE2D4D91C07D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F37598F-0315-494D-8D38-FE2D4D91C07D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F37598F-0315-494D-8D38-FE2D4D91C07D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

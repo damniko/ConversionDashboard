@@ -24,8 +24,9 @@
         <StackPanel Orientation="Horizontal"
                     Grid.Column="1"
                     HorizontalAlignment="Right">
-            <ToggleButton IsChecked="{Binding ShowEmpty}"
-                          Content="Empty"/>
+            <ToggleButton x:Name="FilterBtn" Content="Filter">
+            </ToggleButton>
+
             <ToggleButton IsChecked="{Binding ShowOk}"
                           Content="Ok"/>
             <ToggleButton IsChecked="{Binding ShowDisabled}"
@@ -35,6 +36,20 @@
             <ToggleButton IsChecked="{Binding ShowFailMismatch}"
                           Content="Fail Mimatch"/>
         </StackPanel>
+        
+        <Popup IsOpen="{Binding ElementName=FilterBtn, Path=IsChecked}"
+               PlacementTarget="{Binding ElementName=FilterBtn}"
+               Placement="Bottom"
+               StaysOpen="False">
+            <Border BorderThickness="1"
+                    BorderBrush="Black">
+                <StackPanel Orientation="Vertical"
+                        Background="White">
+                    <CheckBox Content="Show empty entries" IsChecked="{Binding ShowEmpty}"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+
 
         <StackPanel Orientation="Horizontal"
                     Grid.Column="3">
@@ -48,9 +63,15 @@
         <TextBox Grid.Row="1"
                  Grid.Column="1"
                  Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"/>
-        <ComboBox Grid.Row="1">
-            <ComboBoxItem Content="All"
-                          IsSelected="True"/>
+        <ComboBox Grid.Row="1"
+                  SelectedItem="{Binding SelectedExecution}"
+                  SelectedIndex="0"
+                  ItemsSource="{Binding Executions}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding DisplayValue}"/>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
         </ComboBox>
         
         <TreeView Grid.Row="2"
@@ -61,12 +82,13 @@
                   VirtualizingPanel.ScrollUnit="Pixel">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding ReconciliationsView}">
-                    <TextBlock Text="{Binding Item}"/>
+                    <TextBlock Text="{Binding DisplayValue}"/>
                     <HierarchicalDataTemplate.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Item.Date}"/>
+                                <TextBlock Text="{Binding Item.Date, StringFormat=(HH:MM:ss.fff) }"/>
                                 <TextBlock Text="{Binding Item.Description}"/>
+                                <TextBlock Text="{Binding Item.Result, StringFormat=' - {0}'}"/>
                             </StackPanel>
                         </DataTemplate>
                     </HierarchicalDataTemplate.ItemTemplate>

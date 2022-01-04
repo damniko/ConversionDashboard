@@ -3,6 +3,7 @@ using System.Windows;
 using DataLibrary.DataAccess;
 using DataLibrary.DataAccess.Interfaces;
 using DesktopUI.Controllers;
+using DesktopUI.Helpers;
 using DesktopUI.Library;
 using DesktopUI.ViewModels;
 using Microsoft.Extensions.Configuration;
@@ -62,20 +63,36 @@ namespace DesktopUI
                     .AddDebug();   
             });
 
+            // Singletons
             services
                 .AddSingleton(provider => GetConfiguration())
                 .AddSingleton<QueryTimerService>()
-                .AddTransient<IQueryTimer, QueryTimer>()
+                .AddSingleton<ExecutionAssociationHelper>();
+
+            // Data Access
+            services
                 .AddTransient<IDataAccess, EfDataAccess>()
                 .AddTransient<ILogData, LogData>()
-                .AddTransient<IReconciliationData, ReconciliationData>()
-                .AddTransient<ControlBarViewModel>()
-                .AddTransient<LogController>()
-                .AddTransient<ReconciliationController>()
+                .AddTransient<IExecutionData, ExecutionData>()
+                .AddTransient<IReconciliationData, ReconciliationData>();
+
+            // ViewModels
+            services
                 .AddTransient<ReconciliationViewModel>()
                 .AddTransient<LogViewModel>()
-                .AddTransient<MainViewModel>();
+                .AddTransient<MainViewModel>()
+                .AddTransient<ControlBarViewModel>();
 
+            // Controllers
+            services
+                .AddTransient<LogController>()
+                .AddTransient<ExecutionController>()
+                .AddTransient<ReconciliationController>();
+
+            // Others
+            services
+                .AddTransient<IQueryTimer, QueryTimer>();
+            
             return services.BuildServiceProvider();
         }
     }
