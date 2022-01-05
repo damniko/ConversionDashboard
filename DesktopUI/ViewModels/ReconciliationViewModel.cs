@@ -53,6 +53,7 @@ namespace DesktopUI.ViewModels
             set
             {
                 SetProperty(ref _selectedExecution, value);
+                OnPropertyChanged(nameof(ClearSelectedExecutionCommand));
                 View.Refresh();
             }
         }
@@ -110,10 +111,15 @@ namespace DesktopUI.ViewModels
                 View.Refresh();
             }
         }
+        public int TotalCount => View.Cast<ReconciliationGrouping>().Sum(x => x.TotalCount);
+        public int OkCount => View.Cast<ReconciliationGrouping>().Sum(x => x.OkCount);
+        public int DisabledCount => View.Cast<ReconciliationGrouping>().Sum(x => x.DisabledCount);
+        public int FailedCount => View.Cast<ReconciliationGrouping>().Sum(x => x.FailedCount);
+        public int FailMismatchCount => View.Cast<ReconciliationGrouping>().Sum(x => x.FailMismatchCount);
         #endregion
 
         public ICommand RefreshCommand => new RelayCommand(() => Refresh(DateTime.Now));
-        public ICommand ClearSelectedExecutionCommand => new RelayCommand(() => SelectedExecution = null);
+        public ICommand ClearSelectedExecutionCommand => new RelayCommand(() => SelectedExecution = null, () => SelectedExecution != null);
 
         public void Refresh(DateTime date)
         {
@@ -134,7 +140,7 @@ namespace DesktopUI.ViewModels
             });
         }
 
-        public void UpdateReconciliations()
+        private void UpdateReconciliations()
         {
             var groupDict = _controller.GetManagerReconciliationDict(_lastUpdated);
 
@@ -162,7 +168,17 @@ namespace DesktopUI.ViewModels
                 Source = Groupings,
             };
             viewSource.Filter += Groupings_Filter;
+            viewSource.View.CollectionChanged += RefreshCounters;
             return viewSource;
+        }
+
+        private void RefreshCounters(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(TotalCount));
+            OnPropertyChanged(nameof(OkCount));
+            OnPropertyChanged(nameof(DisabledCount));
+            OnPropertyChanged(nameof(FailedCount));
+            OnPropertyChanged(nameof(FailMismatchCount));
         }
 
         private void Groupings_Filter(object sender, FilterEventArgs e)

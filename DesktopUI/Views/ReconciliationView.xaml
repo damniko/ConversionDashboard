@@ -5,11 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:DesktopUI.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="225" d:DesignWidth="400">
+             d:DesignHeight="350" d:DesignWidth="600">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="10"/>
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
@@ -18,23 +18,54 @@
             <RowDefinition Height="22"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        
+
+        <GridSplitter Grid.Column="2"
+                      Grid.Row="1"
+                      Grid.RowSpan="2"
+                      Width="4"
+                      Height="100"
+                      HorizontalAlignment="Center"/>
+
         <!-- Header -->
         <TextBlock Text="Afstemninger"/>
         <StackPanel Orientation="Horizontal"
-                    Grid.Column="1"
+                    Grid.ColumnSpan="2"
                     HorizontalAlignment="Right">
             <ToggleButton x:Name="FilterBtn" Content="Filter">
             </ToggleButton>
 
-            <ToggleButton IsChecked="{Binding ShowOk}"
-                          Content="Ok"/>
-            <ToggleButton IsChecked="{Binding ShowDisabled}"
-                          Content="Disabled"/>
-            <ToggleButton IsChecked="{Binding ShowFailed}"
-                          Content="Failed"/>
-            <ToggleButton IsChecked="{Binding ShowFailMismatch}"
-                          Content="Fail Mimatch"/>
+            <ToggleButton IsChecked="{Binding ShowOk}">
+                <ToggleButton.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding OkCount}"/>
+                        <TextBlock Text=" Ok"/>
+                    </StackPanel>
+                </ToggleButton.Content>
+            </ToggleButton>
+            <ToggleButton IsChecked="{Binding ShowDisabled}">
+                <ToggleButton.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding DisabledCount}"/>
+                        <TextBlock Text=" Disabled"/>
+                    </StackPanel>
+                </ToggleButton.Content>
+            </ToggleButton>
+            <ToggleButton IsChecked="{Binding ShowFailed}">
+                <ToggleButton.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding FailedCount}"/>
+                        <TextBlock Text=" Failed"/>
+                    </StackPanel>
+                </ToggleButton.Content>
+            </ToggleButton>
+            <ToggleButton IsChecked="{Binding ShowFailMismatch}">
+                <ToggleButton.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding FailMismatchCount}"/>
+                        <TextBlock Text=" FailMismatch"/>
+                    </StackPanel>
+                </ToggleButton.Content>
+            </ToggleButton>
         </StackPanel>
         
         <Popup IsOpen="{Binding ElementName=FilterBtn, Path=IsChecked}"
@@ -50,7 +81,6 @@
             </Border>
         </Popup>
 
-
         <StackPanel Orientation="Horizontal"
                     Grid.Column="3">
             <TextBlock Text="Details"/>
@@ -59,30 +89,30 @@
             <Button Content="Pop ud"/>
         </StackPanel>
         
-        <!-- Body -->
-        <Grid Grid.Row="1">
+        <!-- Body: Reconciliations -->
+        <Grid Grid.Row="1"
+              Grid.Column="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="22"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="22"/>
             </Grid.ColumnDefinitions>
-            <Button Content="X"
-                    Command="{Binding ClearSelectedExecutionCommand}"/>
-            <ComboBox Grid.Column="1"
-                      SelectedItem="{Binding SelectedExecution}"
-                      SelectedIndex="0"
+            <ComboBox SelectedItem="{Binding SelectedExecution}"
                       ItemsSource="{Binding Executions}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Id, StringFormat='Execution {0}'}"/>                    </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
+            <Button Content="X"
+                    Grid.Column="1"
+                    Command="{Binding ClearSelectedExecutionCommand}"/>
         </Grid>
 
         <TextBox Grid.Row="1"
-                 Grid.Column="1"
                  Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"/>
         
-        <TreeView Grid.Row="2"
+        <TreeView x:Name="ReconciliationsTreeView"
+                  Grid.Row="2"
                   Grid.ColumnSpan="2"
                   ItemsSource="{Binding View}"
                   VirtualizingPanel.IsVirtualizing="True"
@@ -92,7 +122,12 @@
                 <HierarchicalDataTemplate ItemsSource="{Binding View}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding GroupNameShort}"/>
-                        <TextBlock Text="{Binding FailedCount}"/>
+                        <TextBlock Text="{Binding FailedCount, StringFormat=({0})}"/>
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Go to Manager Insights"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
                     </StackPanel>
                     <HierarchicalDataTemplate.ItemTemplate>
                         <DataTemplate>
@@ -100,6 +135,16 @@
                                 <TextBlock Text="{Binding Date, StringFormat=(HH:MM:ss.fff) }"/>
                                 <TextBlock Text="{Binding Description}"/>
                                 <TextBlock Text="{Binding Result, StringFormat=' - {0}'}"/>
+                                <StackPanel.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Go to Manager Insights"/>
+                                        <Separator/>
+                                        <MenuItem Header="Copy source SQL"
+                                                  IsEnabled="False"/>
+                                        <MenuItem Header="Copy destination SQL"
+                                                  IsEnabled="False"/>
+                                    </ContextMenu>
+                                </StackPanel.ContextMenu>
                             </StackPanel>
                         </DataTemplate>
                     </HierarchicalDataTemplate.ItemTemplate>
@@ -112,5 +157,38 @@
                 </Style>
             </TreeView.Resources>
         </TreeView>
+    
+        <!-- Body: Details -->
+        <Grid Grid.Row="1"
+              Grid.RowSpan="2"
+              Grid.Column="3"
+              DataContext="{Binding ElementName=ReconciliationsTreeView, Path=SelectedItem}">
+            <WrapPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Description: "/>
+                    <TextBlock Text="{Binding Description}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Result: "/>
+                    <TextBlock Text="{Binding Result}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Date: "/>
+                    <TextBlock Text="{Binding Date}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Context: "/>
+                    <TextBlock Text="{Binding Context}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Source Count: "/>
+                    <TextBlock Text="{Binding SrcCount, TargetNullValue='N/A'}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Dest. Count: "/>
+                    <TextBlock Text="{Binding DstCount, TargetNullValue='N/A'}"/>
+                </StackPanel>
+            </WrapPanel>
+        </Grid>
     </Grid>
 </UserControl>
