@@ -76,19 +76,22 @@
         
         <TreeView Grid.Row="2"
                   Grid.ColumnSpan="2"
-                  ItemsSource="{Binding GroupingsView}"
+                  ItemsSource="{Binding View}"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.VirtualizationMode="Recycling"
                   VirtualizingPanel.ScrollUnit="Pixel">
             <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding ReconciliationsView}">
-                    <TextBlock Text="{Binding DisplayValue}"/>
+                <HierarchicalDataTemplate ItemsSource="{Binding View}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding GroupNameShort}"/>
+                        <TextBlock Text="{Binding FailedCount}"/>
+                    </StackPanel>
                     <HierarchicalDataTemplate.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Item.Date, StringFormat=(HH:MM:ss.fff) }"/>
-                                <TextBlock Text="{Binding Item.Description}"/>
-                                <TextBlock Text="{Binding Item.Result, StringFormat=' - {0}'}"/>
+                                <TextBlock Text="{Binding Date, StringFormat=(HH:MM:ss.fff) }"/>
+                                <TextBlock Text="{Binding Description}"/>
+                                <TextBlock Text="{Binding Result, StringFormat=' - {0}'}"/>
                             </StackPanel>
                         </DataTemplate>
                     </HierarchicalDataTemplate.ItemTemplate>

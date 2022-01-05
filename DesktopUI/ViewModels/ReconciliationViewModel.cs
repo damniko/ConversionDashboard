@@ -17,7 +17,7 @@ namespace DesktopUI.ViewModels
 {
     public class ReconciliationViewModel : ObservableObject
     {
-        private readonly CollectionViewSource _groupingsViewSource;
+        private readonly CollectionViewSource _viewSource;
         private readonly ReconciliationController _controller;
         private readonly ExecutionController _executionController;
         private readonly ExecutionAssociationHelper _associationHelper;
@@ -39,16 +39,17 @@ namespace DesktopUI.ViewModels
             _controller = reconciliationController;
             _executionController = executionController;
             _associationHelper = associationHelper;
-            _groupingsViewSource = ConfigureViewSource();
-            queryTimerService.ReconciliationTimer.Elapsed += UpdateData;
+            _viewSource = ConfigureViewSource();
+            queryTimerService.ReconciliationTimer.Elapsed += UpdateExecutions;
+            queryTimerService.ReconciliationTimer.Elapsed += UpdateReconciliations;
 
-            Executions.Add(new Node<ExecutionDto>("(All)"));
+            Executions.Add(new Node<ExecutionDto>("(All)")); // TODO - find less hacky way to achieve this
             _selectedExecution = Executions.First();
         }
 
         #region Properties
-        public List<ReconciliationGroupingNode> Groupings { get; } = new();
-        public ICollectionView GroupingsView => _groupingsViewSource.View;
+        public List<ReconciliationGrouping> Groupings { get; } = new();
+        public ICollectionView View => _viewSource.View;
         public ObservableCollection<Node<ExecutionDto>> Executions { get; } = new();
         public Node<ExecutionDto> SelectedExecution 
         {
@@ -56,7 +57,7 @@ namespace DesktopUI.ViewModels
             set
             {
                 SetProperty(ref _selectedExecution, value);
-                GroupingsView.Refresh();
+                View.Refresh();
             }
         }
         public string SearchTerm
@@ -65,7 +66,7 @@ namespace DesktopUI.ViewModels
             set
             {
                 SetProperty(ref _searchTerm, value);
-                GroupingsView.Refresh();
+                View.Refresh();
             }
         }
         public bool ShowEmpty
@@ -74,7 +75,7 @@ namespace DesktopUI.ViewModels
             set
             {
                 SetProperty(ref _showEmpty, value);
-                GroupingsView.Refresh();
+                View.Refresh();
             }
         }
         public bool ShowOk
@@ -83,7 +84,7 @@ namespace DesktopUI.ViewModels
             set
             {
                 SetProperty(ref _showOk, value);
-                GroupingsView.Refresh();
+                View.Refresh();
             }
         }
         public bool ShowDisabled
@@ -92,7 +93,7 @@ namespace DesktopUI.ViewModels
             set
             {
                 SetProperty(ref _showDisabled, value);
-                GroupingsView.Refresh();
+                View.Refresh();
             }
         }
         public bool ShowFailed
@@ -101,7 +102,7 @@ namespace DesktopUI.ViewModels
             set
             {
                 SetProperty(ref _showFailed, value);
-                GroupingsView.Refresh();
+                View.Refresh();
             }
         }
         public bool ShowFailMismatch
@@ -110,46 +111,51 @@ namespace DesktopUI.ViewModels
             set
             {
                 SetProperty(ref _showFailMismatch, value);
-                GroupingsView.Refresh();
+                View.Refresh();
             }
         }
         #endregion
 
-        public ICommand RefreshCommand => new RelayCommand(() => UpdateData(DateTime.Now));
+        public ICommand RefreshCommand => new RelayCommand(() => Refresh(DateTime.Now));
 
-        public void UpdateData(DateTime date)
+        public void Refresh(DateTime date)
         {
             lock (_updateLock)
             {
-                var executions = _executionController.GetExecutions(_lastUpdated);
-                App.Current.Dispatcher.Invoke(() =>
-                {
-                    executions.ForEach(e => Executions.Add(new Node<ExecutionDto>(e, $"Execution {e.Id}")));
-                });
-
-                var groupDict = _controller.GetManagerReconciliationDict(_lastUpdated);
+                UpdateExecutions(_lastUpdated);
+                UpdateReconciliations(_lastUpdated);
                 _lastUpdated = date;
-
-                if (groupDict.Any() is false) return;
-
-                _groupingsViewSource.Dispatcher.Invoke(() =>
-                {
-                    using (_groupingsViewSource.DeferRefresh())
-                    {
-                        foreach (var key in groupDict.Keys)
-                        {
-                            var grouping = Groupings.FirstOrDefault(x => x.Item == string.Join('.', key.Split('.').TakeLast(2))); // TODO - refactor this
-                            if (grouping is null)
-                            {
-                                grouping = new ReconciliationGroupingNode(key, Reconciliations_Filter);
-                                Groupings.Add(grouping);
-                            }
-                            grouping.AddReconciliations(groupDict[key]);
-                        }
-                    }
-                    GroupingsView.Refresh();
-                });
             }
+        }
+
+        private void UpdateExecutions(DateTime date)
+        {
+            var executions = _executionController.GetExecutions(_lastUpdated);
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                executions.ForEach(e => Executions.Add(new Node<ExecutionDto>(e, $"Execution {e.Id}")));
+            });
+        }
+
+        public void UpdateReconciliations(DateTime date)
+        {
+            var groupDict = _controller.GetManagerReconciliationDict(_lastUpdated);
+
+            if (groupDict.Any() is false) return;
+
+            _viewSource.Dispatcher.Invoke(() =>
+            {
+                foreach (var key in groupDict.Keys)
+                {
+                    if (Groupings.FirstOrDefault(x => x.GroupName == key) is not ReconciliationGrouping grouping)
+                    {
+                        grouping = new(Reconciliations_Filter, key);
+                        Groupings.Add(grouping);
+                    }
+                    grouping.AddReconciliations(groupDict[key]);
+                }
+                View.Refresh();
+            });
         }
 
         private CollectionViewSource ConfigureViewSource()
@@ -164,18 +170,18 @@ namespace DesktopUI.ViewModels
 
         private void Groupings_Filter(object sender, FilterEventArgs e)
         {
-            if(e.Item is ReconciliationGroupingNode grouping)
+            if (e.Item is ReconciliationGrouping grouping)
             {
-                grouping.ReconciliationsView.Refresh();
-                e.Accepted = grouping.DisplayValue.Contains(SearchTerm) && (!grouping.ReconciliationsView.IsEmpty || ShowEmpty);
+                grouping.View.Refresh();
+                e.Accepted = grouping.GroupName.Contains(SearchTerm) && (!grouping.View.IsEmpty || ShowEmpty);
             }
         }
 
         private void Reconciliations_Filter(object sender, FilterEventArgs e)
         {
-            Node<ReconciliationDto> node = (Node<ReconciliationDto>)e.Item;
-            ReconciliationResult result = node.Item!.Result;
-            bool isInExecution = _associationHelper.IsInExecution(node.Item, SelectedExecution?.Item);
+            ReconciliationDto node = (ReconciliationDto)e.Item;
+            ReconciliationResult result = node.Result;
+            bool isInExecution = _associationHelper.IsInExecution(node, SelectedExecution?.Item);
             e.Accepted = isInExecution
                 && ((ShowOk && result is ReconciliationResult.Ok)
                 || (ShowDisabled && result is ReconciliationResult.Disabled)

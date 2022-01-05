@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace DesktopUI.Models
 {
@@ -10,8 +11,22 @@ namespace DesktopUI.Models
         FailMismatch = 4,
     }
 
-    public class ReconciliationDto
+    public class ReconciliationDto : ObservableObject
     {
+        private bool _isSelected;
+        private bool _isExpanded;
+
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set => SetProperty(ref _isSelected, value);
+        }
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+            set => SetProperty(ref _isExpanded, value);
+        }
+
         public Guid Id { get; set; } = Guid.Empty;
         public DateTime Date { get; set; }
         public DateTime? StartTime { get; set; }
