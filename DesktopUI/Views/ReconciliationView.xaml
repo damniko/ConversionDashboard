@@ -85,7 +85,7 @@
                     Grid.Column="3">
             <TextBlock Text="Details"/>
             <Button Content="Refresh"
-                    Command="{Binding RefreshCommand}"/>
+                    Command="{Binding UpdateDataCmd}"/>
             <Button Content="Pop ud"/>
         </StackPanel>
         
@@ -105,7 +105,7 @@
             </ComboBox>
             <Button Content="X"
                     Grid.Column="1"
-                    Command="{Binding ClearSelectedExecutionCommand}"/>
+                    Command="{Binding ClearSelectedExecutionCmd}"/>
         </Grid>
 
         <TextBox Grid.Row="1"
@@ -122,7 +122,7 @@
                 <HierarchicalDataTemplate ItemsSource="{Binding View}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding GroupNameShort}"/>
-                        <TextBlock Text="{Binding FailedCount, StringFormat=({0})}"/>
+                        <TextBlock Text="{Binding FailedTotalCount, StringFormat=({0})}"/>
                         <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Go to Manager Insights"/>

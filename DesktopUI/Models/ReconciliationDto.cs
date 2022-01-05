@@ -11,6 +11,9 @@ namespace DesktopUI.Models
         FailMismatch = 4,
     }
 
+    /// <summary>
+    /// DTO for the <see cref="DataLibrary.Models.Reconciliation"/> class.
+    /// </summary>
     public class ReconciliationDto : ObservableObject
     {
         private bool _isSelected;
@@ -35,20 +38,16 @@ namespace DesktopUI.Models
         public string Description { get; set; } = string.Empty;
         public string? RunJob { get; set; }
         public int? ToolkitId { get; set; }
-
         public string Manager { get; set; } = string.Empty;
         public string? Context { get; set; }
-
         public int? SrcCount { get; set; }
         public string? SrcSqlString { get; set; }
         public int? SrcSqlCost { get; set; }
         public int? SrcSqlTime { get; set; }
-
         public int? DstCount { get; set; }
         public int? DstSqlCost { get; set; }
         public string? DstSqlString { get; set; }
         public int? DstSqlTime { get; set; }
-
         public int? CustomCount { get; set; }
         public int? CustomSqlCost { get; set; }
         public string? CustomSqlString { get; set; }
