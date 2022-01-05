@@ -29,7 +29,7 @@ namespace DesktopUI.ViewModels
         private bool _showFailed = true;
         private bool _showFailMismatch = true;
         private string _searchTerm = string.Empty;
-        private Node<ExecutionDto> _selectedExecution;
+        private ExecutionDto? _selectedExecution;
 
         public ReconciliationViewModel(QueryTimerService queryTimerService,
                                        ReconciliationController reconciliationController,
@@ -40,18 +40,14 @@ namespace DesktopUI.ViewModels
             _executionController = executionController;
             _associationHelper = associationHelper;
             _viewSource = ConfigureViewSource();
-            queryTimerService.ReconciliationTimer.Elapsed += UpdateExecutions;
-            queryTimerService.ReconciliationTimer.Elapsed += UpdateReconciliations;
-
-            Executions.Add(new Node<ExecutionDto>("(All)")); // TODO - find less hacky way to achieve this
-            _selectedExecution = Executions.First();
+            queryTimerService.ReconciliationTimer.Elapsed += Refresh;
         }
 
         #region Properties
         public List<ReconciliationGrouping> Groupings { get; } = new();
         public ICollectionView View => _viewSource.View;
-        public ObservableCollection<Node<ExecutionDto>> Executions { get; } = new();
-        public Node<ExecutionDto> SelectedExecution 
+        public ObservableCollection<ExecutionDto> Executions { get; } = new();
+        public ExecutionDto? SelectedExecution 
         {
             get => _selectedExecution;
             set
@@ -117,27 +113,28 @@ namespace DesktopUI.ViewModels
         #endregion
 
         public ICommand RefreshCommand => new RelayCommand(() => Refresh(DateTime.Now));
+        public ICommand ClearSelectedExecutionCommand => new RelayCommand(() => SelectedExecution = null);
 
         public void Refresh(DateTime date)
         {
             lock (_updateLock)
             {
-                UpdateExecutions(_lastUpdated);
-                UpdateReconciliations(_lastUpdated);
+                UpdateExecutions();
+                UpdateReconciliations();
                 _lastUpdated = date;
             }
         }
 
-        private void UpdateExecutions(DateTime date)
+        private void UpdateExecutions()
         {
             var executions = _executionController.GetExecutions(_lastUpdated);
             App.Current.Dispatcher.Invoke(() =>
             {
-                executions.ForEach(e => Executions.Add(new Node<ExecutionDto>(e, $"Execution {e.Id}")));
+                executions.ForEach(x => Executions.Add(x));
             });
         }
 
-        public void UpdateReconciliations(DateTime date)
+        public void UpdateReconciliations()
         {
             var groupDict = _controller.GetManagerReconciliationDict(_lastUpdated);
 
@@ -181,7 +178,7 @@ namespace DesktopUI.ViewModels
         {
             ReconciliationDto node = (ReconciliationDto)e.Item;
             ReconciliationResult result = node.Result;
-            bool isInExecution = _associationHelper.IsInExecution(node, SelectedExecution?.Item);
+            bool isInExecution = _associationHelper.IsInExecution(node, SelectedExecution);
             e.Accepted = isInExecution
                 && ((ShowOk && result is ReconciliationResult.Ok)
                 || (ShowDisabled && result is ReconciliationResult.Disabled)
