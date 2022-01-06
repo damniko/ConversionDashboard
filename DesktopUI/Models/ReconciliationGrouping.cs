@@ -13,7 +13,6 @@ namespace DesktopUI.Models
     public class ReconciliationGrouping : ObservableObject
     {
         private readonly CollectionViewSource _viewSource;
-        private readonly List<ReconciliationDto> _reconciliations = new();
         private string _groupName = string.Empty;
         private bool _isExpanded;
         private bool _isSelected;
@@ -49,13 +48,14 @@ namespace DesktopUI.Models
             }
         }
         public string GroupNameShort => string.Join('.', GroupName.Split('.').TakeLast(2));
-        public int TotalCount => _reconciliations.Count;
-        public int OkCount => _reconciliations.Count(x => x.Result is ReconciliationResult.Ok);
-        public int DisabledCount => _reconciliations.Count(x => x.Result is ReconciliationResult.Disabled);
-        public int FailedCount => _reconciliations.Count(x => x.Result is ReconciliationResult.Failed);
-        public int FailMismatchCount => _reconciliations.Count(x => x.Result is ReconciliationResult.FailMismatch);
+        public List<ReconciliationDto> Reconciliations { get; } = new();
+        public int TotalCount => Reconciliations.Count;
+        public int OkCount => Reconciliations.Count(x => x.Result is ReconciliationResult.Ok);
+        public int DisabledCount => Reconciliations.Count(x => x.Result is ReconciliationResult.Disabled);
+        public int FailedCount => Reconciliations.Count(x => x.Result is ReconciliationResult.Failed);
+        public int FailMismatchCount => Reconciliations.Count(x => x.Result is ReconciliationResult.FailMismatch);
         public int FailedTotalCount => FailedCount + FailMismatchCount;
-        public DateTime? StartTime => _reconciliations.FirstOrDefault()?.StartTime.GetValueOrDefault();
+        public DateTime? StartTime => Reconciliations.FirstOrDefault()?.StartTime.GetValueOrDefault();
 
         /// <summary>
         /// Adds the specified <paramref name="newReconciliations"/> to the <see cref="ReconciliationGrouping"/> and notifies the view that the count properties have changed.
@@ -63,7 +63,7 @@ namespace DesktopUI.Models
         /// <param name="newReconciliations">The list of new reconciliations to add.</param>
         public void AddReconciliations(IEnumerable<ReconciliationDto> newReconciliations)
         {
-            _reconciliations.AddRange(newReconciliations);
+            Reconciliations.AddRange(newReconciliations);
             OnPropertyChanged(nameof(TotalCount));
             OnPropertyChanged(nameof(OkCount));
             OnPropertyChanged(nameof(DisabledCount));
@@ -72,14 +72,14 @@ namespace DesktopUI.Models
         }
 
         /// <summary>
-        /// Configures a <see cref="CollectionViewSource"/> for <see cref="_reconciliations"/> with sorting and filtering.
+        /// Configures a <see cref="CollectionViewSource"/> for <see cref="Reconciliations"/> with sorting and filtering.
         /// </summary>
         /// <returns>A fully-configured <see cref="CollectionViewSource"/>.</returns>
         private CollectionViewSource ConfigureViewSource(FilterEventHandler filter)
         {
             var viewSource = new CollectionViewSource()
             {
-                Source = _reconciliations,
+                Source = Reconciliations,
                 SortDescriptions =
                 {
                     new(nameof(ReconciliationDto.Result), ListSortDirection.Descending)

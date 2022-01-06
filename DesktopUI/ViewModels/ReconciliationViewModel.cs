@@ -116,11 +116,11 @@ namespace DesktopUI.ViewModels
             }
         }
         // Counters for reconciliations in the currently filtered view (per execution).
-        public int TotalCount => View.Cast<ReconciliationGrouping>().Sum(x => x.TotalCount);
-        public int OkCount => View.Cast<ReconciliationGrouping>().Sum(x => x.OkCount);
-        public int DisabledCount => View.Cast<ReconciliationGrouping>().Sum(x => x.DisabledCount);
-        public int FailedCount => View.Cast<ReconciliationGrouping>().Sum(x => x.FailedCount);
-        public int FailMismatchCount => View.Cast<ReconciliationGrouping>().Sum(x => x.FailMismatchCount);
+        public int TotalCount => Groupings.Where(x => IsInExecution(x)).Sum(x => x.TotalCount);
+        public int OkCount => Groupings.Where(x => IsInExecution(x)).Sum(x => x.OkCount);
+        public int DisabledCount => Groupings.Where(x => IsInExecution(x)).Sum(x => x.DisabledCount);
+        public int FailedCount => Groupings.Where(x => IsInExecution(x)).Sum(x => x.FailedCount);
+        public int FailMismatchCount => Groupings.Where(x => IsInExecution(x)).Sum(x => x.FailMismatchCount);
         #endregion
 
         /// <summary>
@@ -238,14 +238,42 @@ namespace DesktopUI.ViewModels
         /// </summary>
         private void Reconciliations_Filter(object sender, FilterEventArgs e)
         {
-            ReconciliationDto node = (ReconciliationDto)e.Item;
-            ReconciliationResult result = node.Result;
-            bool isInExecution = _associationHelper.IsInExecution(node, SelectedExecution);
-            e.Accepted = isInExecution
+            ReconciliationDto item = (ReconciliationDto)e.Item;
+            ReconciliationResult result = item.Result;
+            e.Accepted = IsInExecution(item)
                 && ((ShowOk && result is ReconciliationResult.Ok)
                 || (ShowDisabled && result is ReconciliationResult.Disabled)
                 || (ShowFailed && result is ReconciliationResult.Failed)
                 || (ShowFailMismatch && result is ReconciliationResult.FailMismatch));
+        }
+
+        private bool IsInExecution(ReconciliationDto item)
+        {
+            if (SelectedExecution is null)
+            {
+                return true;
+            }
+            else
+            {
+                return SelectedExecution.EndTime.HasValue
+                    ? item.Date >= SelectedExecution.StartTime && item.Date <= SelectedExecution.EndTime.Value
+                    : item.Date >= SelectedExecution.StartTime;
+            }
+        }
+
+        private bool IsInExecution(ReconciliationGrouping item)
+        {
+            var e = SelectedExecution;
+            if (e is null)
+            {
+                return true;
+            }
+            else
+            {
+                return e.EndTime.HasValue
+                    ? item.Reconciliations.All(x => x.Date >= e.StartTime && x.Date <= e.EndTime.Value)
+                    : item.Reconciliations.All(x => x.Date >= e.StartTime);
+            }
         }
     }
 }
