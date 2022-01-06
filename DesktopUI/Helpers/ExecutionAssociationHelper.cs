@@ -1,20 +1,27 @@
-﻿using DesktopUI.Models;
+﻿using System;
+using DesktopUI.Models;
 
 namespace DesktopUI.Helpers
 {
     public class ExecutionAssociationHelper
     {
-        public bool IsInExecution(ReconciliationDto item, ExecutionDto? execution)
+        public bool IsInExecution(ReconciliationDto item, ExecutionDto? e)
+            => GetValue(item.Date, e);
+
+        public bool IsInExecution(LogEntryDto item, ExecutionDto? e) 
+            => e is null || e.Id == item.ExecutionId;
+
+        private bool GetValue(DateTime date, ExecutionDto? e)
         {
-            if (execution is null)
+            if (e is null)
             {
                 return true;
             }
             else
             {
-                return execution.EndTime.HasValue
-                    ? item.Date >= execution.StartTime && item.Date <= execution.EndTime.Value
-                    : item.Date >= execution.StartTime;
+                return e.EndTime.HasValue
+                    ? date >= e.StartTime && date <= e.EndTime.Value
+                    : date >= e.StartTime;
             }
         }
     }

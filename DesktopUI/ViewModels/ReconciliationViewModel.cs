@@ -122,7 +122,7 @@ namespace DesktopUI.ViewModels
         #endregion
 
         /// <summary>
-        /// Triggers an information update which updates the view with new data from the <see cref="ReconciliationController"/>.
+        /// Gets any new data and triggers an update for the view.
         /// </summary>
         public ICommand UpdateDataCmd => new RelayCommand(() => UpdateData(DateTime.Now));
         /// <summary>

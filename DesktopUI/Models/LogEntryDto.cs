@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text.RegularExpressions;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
 
 namespace DesktopUI.Models
 {
@@ -13,10 +15,20 @@ namespace DesktopUI.Models
         Reconciliation = 16
     }
 
-    public class LogEntryDto
+    public class LogEntryDto : ObservableObject
     {
+        private string _message = string.Empty;
+
         public DateTime Created { get; set; }
-        public string Message { get; set; } = string.Empty;
+        public string Message
+        {
+            get => _message;
+            set
+            {
+                // Strips the message of color-coding (so it can be handled by the view)
+                _message = Regex.Replace(value, @"\u001b\[\d*;?\d+m", "");
+            }
+        }
         public LogLevel Level { get; set; }
         public long ExecutionId { get; set; }
         public long ContextId { get; set; }
