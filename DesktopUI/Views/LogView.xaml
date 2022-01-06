@@ -72,9 +72,15 @@
                 </ToggleButton.Content>
             </ToggleButton>
         </StackPanel>
-        
-        <Button Content="Pop ud"
+
+        <StackPanel Orientation="Horizontal"
+                    Grid.Column="2"
+                    HorizontalAlignment="Right">
+            <Button Content="Refresh"
+                    Command="{Binding UpdateDataCmd}"/>
+            <Button Content="Pop ud"
                 Grid.Column="2"/>
+        </StackPanel>
         
         <Popup IsOpen="{Binding ElementName=FilterBtn, Path=IsChecked}"
                PlacementTarget="{Binding ElementName=FilterBtn}"
@@ -116,8 +122,6 @@
                     Grid.Column="1"
                     Command="{Binding ClearSelectedExecutionCmd}"/>
         </Grid>
-        
-        
 
         <TextBox Grid.Row="1"
                  Grid.ColumnSpan="2"

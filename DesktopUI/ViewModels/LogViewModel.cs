@@ -6,7 +6,6 @@ using System.Linq;
 using System.Windows.Data;
 using System.Windows.Input;
 using DesktopUI.Controllers;
-using DesktopUI.Helpers;
 using DesktopUI.Library;
 using DesktopUI.Models;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
@@ -14,10 +13,12 @@ using Microsoft.Toolkit.Mvvm.Input;
 
 namespace DesktopUI.ViewModels
 {
+    /// <summary>
+    /// Handles all logic for the <see cref="Views.LogView"/>.
+    /// </summary>
     public class LogViewModel : ObservableObject
     {
         private readonly CollectionViewSource _viewSource;
-        private readonly ExecutionAssociationHelper _associationHelper;
         private readonly LogController _controller;
         private readonly ExecutionController _executionController;
         private readonly List<LogEntryDto> _entries = new();
@@ -34,11 +35,9 @@ namespace DesktopUI.ViewModels
         private long? _shownContextId;
 
         public LogViewModel(QueryTimerService queryTimerService,
-                            ExecutionAssociationHelper associationHelper,
                             LogController controller,
                             ExecutionController executionController)
         {
-            _associationHelper = associationHelper;
             _controller = controller;
             _executionController = executionController;
             _viewSource = ConfigureViewSource();
@@ -151,6 +150,9 @@ namespace DesktopUI.ViewModels
         /// </summary>
         public ICommand ClearSelectedExecutionCmd
             => new RelayCommand(() => SelectedExecution = null, () => SelectedExecution != null);
+        /// <summary>
+        /// Sets <see cref="ContextIdContainer.IsChecked"/> to true for the filter associated with the specified entry.
+        /// </summary>
         public ICommand AddContextIdCmd => new RelayCommand<LogEntryDto>(e =>
         {
             if (ContextIdFilters.FirstOrDefault(x => x.ContextId == e?.ContextId) is { } x)
@@ -158,12 +160,26 @@ namespace DesktopUI.ViewModels
                 x.IsChecked = true;
             }
         });
+        /// <summary>
+        /// Sets <see cref="ContextIdContainer.IsChecked"/> to false for all containers in <see cref="ContextIdFilters"/>.
+        /// </summary>
         public ICommand ClearContextIdCmd => new RelayCommand(() => ContextIdFilters.ForEach(x => x.IsChecked = false));
+        /// <summary>
+        /// Enables auto-scrolling to the last element whenever a new entry is added.
+        /// </summary>
         public ICommand EnableAutoScrollCommand
             => new RelayCommand(() => AutoScroll = true, () => AutoScroll == false);
+        /// <summary>
+        /// Disables auto-scrolling to the last element whenever a new entry is added.
+        /// </summary>
         public ICommand DisableAutoScrollCommand 
             => new RelayCommand(() => AutoScroll = false, () => AutoScroll == true);
 
+        /// <summary>
+        /// Ensures that any data newer than <see cref="_lastUpdated"/> is fetched through the <see cref="LogController"/> and <see cref="ExecutionController"/>, and updates the view.
+        /// </summary>
+        /// <remarks>Since calls to this function may overlap, a lock is used to avoid duplicating data.</remarks>
+        /// <param name="date">The date at which the update was requested.</param>
         private void UpdateData(DateTime date)
         {
             lock (_updateLock)
@@ -197,6 +213,9 @@ namespace DesktopUI.ViewModels
             });
         }
 
+        /// <summary>
+        /// Gets log entries newer than <see cref="_lastUpdated"/> from the <see cref="LogController"/>, and adds them to the view.
+        /// </summary>
         private void UpdateEntries()
         {
             var newEntries = _controller.GetLogEntries(_lastUpdated);
@@ -213,6 +232,10 @@ namespace DesktopUI.ViewModels
             });
         }
 
+        /// <summary>
+        /// Configures a <see cref="CollectionViewSource"/> for <see cref="_entries"/> with filtering.
+        /// </summary>
+        /// <returns>A fully-configured <see cref="CollectionViewSource"/>.</returns>
         private CollectionViewSource ConfigureViewSource()
         {
             var viewSource = new CollectionViewSource
@@ -224,6 +247,9 @@ namespace DesktopUI.ViewModels
             return viewSource;
         }
 
+        /// <summary>
+        /// Populates <see cref="ContextIdFilters"/> with data from the <see cref="SelectedExecution"/>, if any.
+        /// </summary>
         private void UpdateContextIdFilter()
         {
             ContextIdFilters.Clear();
@@ -239,6 +265,10 @@ namespace DesktopUI.ViewModels
             OnPropertyChanged(nameof(ContextIdFilters));
         }
 
+        /// <summary>
+        /// Invokes the PropertyChanged events for count properties, which updates the view.
+        /// It is called whenever the <see cref="View"/> is changed (i.e., when filtering or adding data).
+        /// </summary>
         private void RefreshCounters(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             OnPropertyChanged(nameof(TotalCount));
@@ -249,6 +279,9 @@ namespace DesktopUI.ViewModels
             OnPropertyChanged(nameof(ReconcCount));
         }
 
+        /// <summary>
+        /// Filter for the <see cref="View"/>.
+        /// </summary>
         private void Entries_Filter(object sender, FilterEventArgs e)
         {
             LogEntryDto item = (LogEntryDto)e.Item;
@@ -262,6 +295,11 @@ namespace DesktopUI.ViewModels
                 || (ShowReconciliation && level.HasFlag(LogLevel.Reconciliation)));
         }
 
+        /// <summary>
+        /// Determines whether the specified <paramref name="item"/> is in the current <see cref="SelectedExecution"/>.
+        /// </summary>
+        /// <param name="item">The entry to check.</param>
+        /// <returns>True if the entry is in <see cref="SelectedExecution"/>, and false otherwise.</returns>
         private bool IsInExecution(LogEntryDto item)
         {
             return SelectedExecution is null || item.ExecutionId == SelectedExecution.Id;
