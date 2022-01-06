@@ -31,8 +31,7 @@
         <StackPanel Orientation="Horizontal"
                     Grid.ColumnSpan="2"
                     HorizontalAlignment="Right">
-            <ToggleButton x:Name="FilterBtn" Content="Filter">
-            </ToggleButton>
+            <ToggleButton x:Name="FilterBtn" Content="Filter"/>
 
             <ToggleButton IsChecked="{Binding ShowOk}">
                 <ToggleButton.Content>
