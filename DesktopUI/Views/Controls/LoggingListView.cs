@@ -4,10 +4,10 @@ using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows;
 
-namespace DesktopUI.Tools
+namespace DesktopUI.Views.Controls
 {
     // From https://stackoverflow.com/questions/3317194/mvvm-how-to-make-a-list-view-auto-scroll-to-a-new-item-in-a-list-view
-    public class LoggingListBox : ListBox
+    public class LoggingListView : ListView
     {
         ///<summary>
         ///Define the AutoScroll property. If enabled, causes the ListBox to scroll to 
@@ -16,8 +16,8 @@ namespace DesktopUI.Tools
         public static readonly DependencyProperty AutoScrollProperty =
             DependencyProperty.Register(
                 "AutoScroll",
-                typeof(Boolean),
-                typeof(LoggingListBox),
+                typeof(bool),
+                typeof(LoggingListView),
                 new FrameworkPropertyMetadata(
                     true, //Default value.
                     FrameworkPropertyMetadataOptions.AffectsArrange |
@@ -45,7 +45,7 @@ namespace DesktopUI.Tools
             DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             SubscribeToAutoScroll_ItemsCollectionChanged(
-                (LoggingListBox)d,
+                (LoggingListView)d,
                 (bool)e.NewValue);
         }
 
@@ -59,7 +59,7 @@ namespace DesktopUI.Tools
         /// <param name="listBox">The list box containing the items collection.</param>
         /// <param name="subscribe">Subscribe to the collection changed event?</param>
         private static void SubscribeToAutoScroll_ItemsCollectionChanged(
-            LoggingListBox listBox, bool subscribe)
+            LoggingListView listBox, bool subscribe)
         {
             if (listBox.Items.SourceCollection is INotifyCollectionChanged notifyCollection)
             {
@@ -90,9 +90,9 @@ namespace DesktopUI.Tools
             if (e.Action is NotifyCollectionChangedAction.Add or NotifyCollectionChangedAction.Reset)
             {
                 int count = Items.Count;
-                if (count > 0)
+                if (AutoScroll && count > 0)
                 {
-                    ScrollIntoView(Items[count - 1]);
+                    ScrollIntoView(Items[^1]);
                 }
             }
         }
@@ -100,7 +100,7 @@ namespace DesktopUI.Tools
         /// <summary>
         /// Constructor a new LoggingListBox.
         /// </summary>
-        public LoggingListBox()
+        public LoggingListView()
         {
             //Subscribe to the AutoScroll property's items collection 
             //changed handler by default if AutoScroll is enabled by default.

@@ -28,7 +28,7 @@ namespace DesktopUI.ViewModels
         private bool _showError = true;
         private bool _showFatal = true;
         private bool _showReconciliation = true;
-        private bool _autoScroll;
+        private bool _autoScroll = true;
         private ExecutionDto? _selectedExecution;
         private string _searchTerm = string.Empty;
         private long? _shownContextId;
@@ -54,10 +54,13 @@ namespace DesktopUI.ViewModels
             set
             {
                 SetProperty(ref _selectedExecution, value);
+                UpdateContextIdFilter();
                 OnPropertyChanged(nameof(ClearSelectedExecutionCmd));
                 View.Refresh();
             }
         }
+        public List<ContextIdContainer> ContextIdFilters { get; } = new();
+        public bool ShowAllContextIds => ContextIdFilters.TrueForAll(x => x.IsChecked is false);
         public bool AutoScroll
         {
             get => _autoScroll;
@@ -148,9 +151,14 @@ namespace DesktopUI.ViewModels
         /// </summary>
         public ICommand ClearSelectedExecutionCmd
             => new RelayCommand(() => SelectedExecution = null, () => SelectedExecution != null);
-        public ICommand SetContextIdCmd
-            => new RelayCommand<LogEntryDto>(e => ShownContextId = e?.ContextId);
-        public ICommand ClearContextIdCmd => new RelayCommand(() => ShownContextId = null);
+        public ICommand AddContextIdCmd => new RelayCommand<LogEntryDto>(e =>
+        {
+            if (ContextIdFilters.FirstOrDefault(x => x.ContextId == e?.ContextId) is { } x)
+            {
+                x.IsChecked = true;
+            }
+        });
+        public ICommand ClearContextIdCmd => new RelayCommand(() => ContextIdFilters.ForEach(x => x.IsChecked = false));
         public ICommand EnableAutoScrollCommand
             => new RelayCommand(() => AutoScroll = true, () => AutoScroll == false);
         public ICommand DisableAutoScrollCommand 
@@ -174,7 +182,18 @@ namespace DesktopUI.ViewModels
             var newExecs = _executionController.GetExecutions(_lastUpdated);
             App.Current.Dispatcher.Invoke(() =>
             {
-                newExecs.ForEach(x => Executions.Add(x));
+                foreach(var exec in newExecs)
+                {
+                    Executions.Add(exec);
+                    // Assign 'Manager' values to entries by using the execution's Context ID dictionary.
+                    foreach (var entry in _entries.Where(x => x.ExecutionId == exec.Id))
+                    {
+                        if (exec.ContextDict.ContainsKey(entry.ContextId))
+                        {
+                            entry.Manager = exec.ContextDict[entry.ContextId];
+                        }
+                    }
+                }
             });
         }
 
@@ -205,6 +224,21 @@ namespace DesktopUI.ViewModels
             return viewSource;
         }
 
+        private void UpdateContextIdFilter()
+        {
+            ContextIdFilters.Clear();
+            if (SelectedExecution != null)
+            {
+                foreach (var contextId in SelectedExecution.ContextDict.Keys)
+                {
+                    var container = new ContextIdContainer { ContextId = contextId };
+                    container.PropertyChanged += (_, _) => View.Refresh();
+                    ContextIdFilters.Add(container);
+                }
+            }
+            OnPropertyChanged(nameof(ContextIdFilters));
+        }
+
         private void RefreshCounters(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             OnPropertyChanged(nameof(TotalCount));
@@ -219,7 +253,7 @@ namespace DesktopUI.ViewModels
         {
             LogEntryDto item = (LogEntryDto)e.Item;
             LogLevel level = item.Level;
-            bool acceptContextId = ShownContextId is null || item.ContextId == ShownContextId.Value;  
+            bool acceptContextId = ShowAllContextIds || ContextIdFilters.Any(x => x.IsChecked && x.ContextId == item.ContextId);
             e.Accepted = (IsInExecution(item) && acceptContextId && item.Message.Contains(SearchTerm))
                 && ((ShowInfo && level.HasFlag(LogLevel.Info))
                 || (ShowWarning && level.HasFlag(LogLevel.Warn))

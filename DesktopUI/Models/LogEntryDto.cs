@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 
@@ -33,5 +34,8 @@ namespace DesktopUI.Models
         public long ExecutionId { get; set; }
         public long ContextId { get; set; }
         public string? Manager { get; set; }
+        public string? ManagerShort => Manager is null 
+            ? Manager
+            : string.Join('.', Manager.Split('.').TakeLast(2));
     }
 }

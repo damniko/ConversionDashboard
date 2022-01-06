@@ -5,9 +5,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:DesktopUI.Views"
-             xmlns:cmd="http://www.galasoft.ch/mvvmlight"
+             xmlns:controls="clr-namespace:DesktopUI.Views.Controls"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             xmlns:tools="clr-namespace:DesktopUI.Tools"
+             xmlns:behaviors="clr-namespace:DesktopUI.Views.Behaviors"
              mc:Ignorable="d" 
              d:DesignHeight="225" d:DesignWidth="400">
     <Grid>
@@ -29,6 +29,8 @@
         <StackPanel Orientation="Horizontal"
                     Grid.Column="1"
                     HorizontalAlignment="Center">
+            <ToggleButton x:Name="FilterBtn" Content="Filter"/>
+
             <ToggleButton IsChecked="{Binding ShowInfo, Mode=TwoWay}">
                 <ToggleButton.Content>
                     <StackPanel Orientation="Horizontal">
@@ -70,9 +72,31 @@
                 </ToggleButton.Content>
             </ToggleButton>
         </StackPanel>
+        
         <Button Content="Pop ud"
                 Grid.Column="2"/>
-
+        
+        <Popup IsOpen="{Binding ElementName=FilterBtn, Path=IsChecked}"
+               PlacementTarget="{Binding ElementName=FilterBtn}"
+               Placement="Bottom"
+               StaysOpen="False">
+            <Border BorderThickness="1"
+                    BorderBrush="Black">
+                <Grid Background="White"
+                      MaxHeight="200">
+                    <ListBox ItemsSource="{Binding ContextIdFilters}"
+                             ScrollViewer.VerticalScrollBarVisibility="Visible">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                    Content="{Binding ContextId}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </Popup>
+        
         <!-- Body -->
         <Grid Grid.Row="1"
               Grid.Column="2">
@@ -92,39 +116,21 @@
                     Grid.Column="1"
                     Command="{Binding ClearSelectedExecutionCmd}"/>
         </Grid>
+        
+        
 
         <TextBox Grid.Row="1"
                  Grid.ColumnSpan="2"
                  Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"/>
-        
-        <ListView Grid.Row="2" x:Name="LogListView"
-                  Grid.ColumnSpan="5"
-                  ItemsSource="{Binding View}"
-                  VirtualizingPanel.IsVirtualizing="True"
-                  VirtualizingPanel.VirtualizationMode="Recycling"
-                  VirtualizingPanel.ScrollUnit="Pixel">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Created}"/>
-                        <TextBlock Text="{Binding Message}"/>
-                        <StackPanel.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Command="{Binding Source={x:Reference Name=Root}, Path=DataContext.SetContextIdCmd}"
-                                          CommandParameter="{Binding}"
-                                          Header="Isolate this manager"/>
-                                <MenuItem Header="Clear context ID filter"
-                                          Command="{Binding Source={x:Reference Name=Root}, Path=DataContext.ClearContextIdCmd}"/>
-                            </ContextMenu>
-                        </StackPanel.ContextMenu>
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        <!--<tools:LoggingListBox ItemsSource="{Binding View}"
-                              Grid.Row="1"
-                              Grid.ColumnSpan="5"
-                              AutoScroll="{Binding AutoScroll, Mode=OneWay}">
+
+        <controls:LoggingListView Grid.Row="2" 
+                                     x:Name="LogListView"
+                                     Grid.ColumnSpan="3"
+                                     ItemsSource="{Binding View}"
+                                  AutoScroll="{Binding AutoScroll, Mode=OneWay}"
+                                     VirtualizingPanel.IsVirtualizing="True"
+                                     VirtualizingPanel.VirtualizationMode="Recycling"
+                                     VirtualizingPanel.ScrollUnit="Pixel">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="MouseEnter">
                     <i:InvokeCommandAction Command="{Binding DisableAutoScrollCommand}"/>
@@ -133,6 +139,27 @@
                     <i:InvokeCommandAction Command="{Binding EnableAutoScrollCommand}"/>
                 </i:EventTrigger>
             </i:Interaction.Triggers>
-        </tools:LoggingListBox>-->
+            <controls:LoggingListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal"
+                                ToolTip="{Binding ManagerShort, TargetNullValue='No context data found'}">
+                        <TextBlock Text="{Binding Created}"/>
+                        <TextBlock Text="{Binding ContextId, StringFormat=({0})}"/>
+                        <TextBlock Text="{Binding Message}"/>
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Go to Manager Insights"/>
+                                <Separator/>
+                                <MenuItem Command="{Binding Source={x:Reference Name=Root}, Path=DataContext.AddContextIdCmd}"
+                                          CommandParameter="{Binding}"
+                                          Header="Filter context ID"/>
+                                <MenuItem Header="Clear context ID filter"
+                                          Command="{Binding Source={x:Reference Name=Root}, Path=DataContext.ClearContextIdCmd}"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                    </StackPanel>
+                </DataTemplate>
+            </controls:LoggingListView.ItemTemplate>
+        </controls:LoggingListView>
     </Grid>
 </UserControl>
