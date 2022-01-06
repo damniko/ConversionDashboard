@@ -20,16 +20,16 @@ namespace DesktopUI.Controllers
             _mapper = mapper;
         }
 
-        public List<ExecutionDto> GetExecutions(DateTime fromDate)
+        public async Task<List<ExecutionDto>> GetSinceAsync(DateTime fromDate)
         {
-            var entries = _executionData.GetSince(fromDate, "Default");
+            var entries = await _executionData.GetSinceAsync(fromDate, "Default");
             var result = _mapper.Map<List<ExecutionDto>>(entries);
             return result;
         }
 
-        public List<ExecutionDto> GetAllExecutions()
+        public async Task<List<ExecutionDto>> GetAllAsync()
         {
-            var entries = _executionData.GetAll("Default");
+            var entries = await _executionData.GetAllAsync("Default");
             var result = _mapper.Map<List<ExecutionDto>>(entries);
             return result;
         }

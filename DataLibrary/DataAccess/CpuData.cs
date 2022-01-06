@@ -22,9 +22,9 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<Reading> GetReadingsSince(DateTime fromDate, string connStrKey)
+        public async Task<List<Reading>> GetReadingsAsync(DateTime fromDate, string connStrKey)
         {
-            var output = from e in _db.GetHealthReportTbl(connStrKey)
+            var output = from e in await _db.GetHealthReportAsync(connStrKey)
                          where e.LOG_TIME > fromDate
                          where e.REPORT_TYPE == _readingReportType && e.REPORT_KEY == _loadKey
                          where e.LOG_TIME.HasValue && e.REPORT_NUMERIC_VALUE.HasValue
@@ -38,80 +38,45 @@ namespace DataLibrary.DataAccess
             return output.ToList();
         }
 
-        public bool TryGetUpdatedName(DateTime fromDate, out string name, string connStrKey)
+        public async Task<string?> GetNameAsync(DateTime fromDate, string connStrKey)
         {
-            name = "";
-            bool wasSuccessful = false;
+            var entry = (from e in await _db.GetHealthReportAsync(connStrKey)
+                         where e.REPORT_KEY == _initNameKey && e.LOG_TIME > fromDate
+                         orderby e.LOG_TIME
+                         select e).LastOrDefault();
 
-            var entry = _db.GetHealthReportTbl(connStrKey)
-                .Where(x => x.LOG_TIME > fromDate)
-                .OrderBy(x => x.LOG_TIME)
-                .LastOrDefault(x => x.REPORT_TYPE == _initReportType && x.REPORT_KEY == _initNameKey);
-
-            if (entry?.REPORT_STRING_VALUE != null)
-            {
-                name = entry.REPORT_STRING_VALUE!;
-                wasSuccessful = true;
-            }
-
-            return wasSuccessful;
+            return entry?.REPORT_STRING_VALUE;
         }
 
-        public bool TryGetUpdatedLogicalCores(DateTime fromDate, out long logicalCores, string connStrKey)
+        public async Task<long?> GetLogicalCoresAsync(DateTime fromDate, string connStrKey)
         {
-            logicalCores = 0;
-            bool wasSuccessful = false;
+            var entry = (from e in await _db.GetHealthReportAsync(connStrKey)
+                         where e.REPORT_KEY == _initLogicalCoresKey && e.LOG_TIME > fromDate
+                         orderby e.LOG_TIME
+                         select e).LastOrDefault();
 
-            var entry = _db.GetHealthReportTbl(connStrKey)
-                .Where(x => x.LOG_TIME > fromDate)
-                .OrderBy(x => x.LOG_TIME)
-                .LastOrDefault(x => x.REPORT_TYPE == _initReportType && x.REPORT_KEY == _initLogicalCoresKey);
-
-            if (entry?.REPORT_NUMERIC_VALUE != null)
-            {
-                logicalCores = entry.REPORT_NUMERIC_VALUE.Value;
-                wasSuccessful = true;
-            }
-
-            return wasSuccessful;
+            return entry?.REPORT_NUMERIC_VALUE;
         }
 
-        public bool TryGetUpdatedPhysicalCores(DateTime fromDate, out long physicalCores, string connStrKey)
+        public async Task<long?> GetPhysicalCoresAsync(DateTime fromDate, string connStrKey)
         {
-            physicalCores = 0;
-            bool wasSuccessful = false;
+            var entry = (from e in await _db.GetHealthReportAsync(connStrKey)
+                         where e.REPORT_KEY == _initPhysicalCoresKey && e.LOG_TIME > fromDate
+                         orderby e.LOG_TIME
+                         select e).LastOrDefault();
 
-            var entry = _db.GetHealthReportTbl(connStrKey)
-                .Where(x => x.LOG_TIME > fromDate)
-                .OrderBy(x => x.LOG_TIME)
-                .LastOrDefault(x => x.REPORT_TYPE == _initReportType && x.REPORT_KEY == _initPhysicalCoresKey);
-
-            if (entry?.REPORT_NUMERIC_VALUE != null)
-            {
-                physicalCores = entry.REPORT_NUMERIC_VALUE.Value;
-                wasSuccessful = true;
-            }
-
-            return wasSuccessful;
+            return entry?.REPORT_NUMERIC_VALUE;
         }
 
-        public bool TryGetUpdatedMaxFrequency(DateTime fromDate, out long maxFrequency, string connStrKey)
+        public async Task<long?> GetMaxFrequencyAsync(DateTime fromDate, string connStrKey)
         {
-            maxFrequency = 0;
-            bool wasSuccessful = false;
+            var entry = (from e in await _db.GetHealthReportAsync(connStrKey)
+                         where e.REPORT_KEY == _initMaxFreqKey && e.LOG_TIME > fromDate
+                         orderby e.LOG_TIME
+                         select e)
+                         .LastOrDefault();
 
-            var entry = _db.GetHealthReportTbl(connStrKey)
-                .Where(x => x.LOG_TIME > fromDate)
-                .OrderBy(x => x.LOG_TIME)
-                .LastOrDefault(x => x.REPORT_TYPE == _initReportType && x.REPORT_KEY == _initMaxFreqKey);
-
-            if (entry?.REPORT_NUMERIC_VALUE != null)
-            {
-                maxFrequency = entry.REPORT_NUMERIC_VALUE.Value;
-                wasSuccessful = true;
-            }
-
-            return wasSuccessful;
+            return entry?.REPORT_NUMERIC_VALUE;
         }
     }
 }

@@ -4,215 +4,216 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace DataLibrary.DataAccess;
-
-/// <summary>
-/// Entity Framework implementation of the <see cref="IDataAccess"/> interface.
-/// </summary>
-public class EfDataAccess : IDataAccess
+namespace DataLibrary.DataAccess
 {
-    private readonly IConfiguration _config;
-    private readonly ILogger<EfDataAccess> _logger;
-
-    public EfDataAccess(IConfiguration config, ILogger<EfDataAccess> logger)
+    /// <summary>
+    /// Entity Framework implementation of the <see cref="IDataAccess"/> interface.
+    /// </summary>
+    public class EfDataAccess : IDataAccess
     {
-        _config = config;
-        _logger = logger;
-    }
+        private readonly IConfiguration _config;
+        private readonly ILogger<EfDataAccess> _logger;
 
-    private string GetConnectionString(string connStrKey)
-    {
-        return _config.GetConnectionString(connStrKey);
-    }
-
-    private DbContextOptions GetDbOptions(string connStrKey)
-    {
-        string connStr = GetConnectionString(connStrKey);
-        return new DbContextOptionsBuilder()
-            .UseSqlServer(connStr)
-            .Options;
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<AFSTEMNING> GetAfstemningTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.AFSTEMNING.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<AUDIT_FK_ERROR> GetAuditFkErrorTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.AUDIT_FK_ERROR.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<AUDIT_LOGERROR> GetAuditLogErrorTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.AUDIT_LOGERROR.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<AUDIT_LOGINFO> GetAuditLogInfoTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.AUDIT_LOGINFO.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<AUDIT_LOGINFO_TYPE> GetAuditLogInfoTypesTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.AUDIT_LOGINFO_TYPE.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<COLUMN_VALUE> GetColumnValueTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.COLUMN_VALUE.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<DEST_TABLE> GetDestTableTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.DEST_TABLE.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<ENGINE_PROPERTY> GetEnginePropertiesTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.ENGINE_PROPERTIES.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<EXECUTION> GetExecutionTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.EXECUTIONS.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<HEALTH_REPORT> GetHealthReportTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.HEALTH_REPORT.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<LOGGING> GetLoggingTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.LOGGING.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<LOGGING_CONTEXT> GetLoggingContextTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.LOGGING_CONTEXT.ToList();
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<MANAGER> GetManagersTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        try
+        public EfDataAccess(IConfiguration config, ILogger<EfDataAccess> logger)
         {
-            return db.MANAGERS.ToList();
+            _config = config;
+            _logger = logger;
         }
-        catch (Exception ex)
+
+        private string GetConnectionString(string connStrKey)
         {
-            _logger.LogInformation(ex, "Tried to access the {MANAGERS} table, but it does not exist in the selected database.", nameof(db.MANAGERS));
-            return new List<MANAGER>();
+            return _config.GetConnectionString(connStrKey);
         }
-    }
 
-    /// <inheritdoc />
-    public IEnumerable<MANAGER_TRACKING> GetManagerTrackingTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.MANAGER_TRACKING.ToList();
-    }
+        private DbContextOptions GetDbOptions(string connStrKey)
+        {
+            string connStr = GetConnectionString(connStrKey);
+            return new DbContextOptionsBuilder()
+                .UseSqlServer(connStr)
+                .Options;
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<MIGRATION_FILE> GetMigrationFileTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.MIGRATION_FILE.ToList();
-    }
+        /// <inheritdoc />
+        public async Task<IEnumerable<AFSTEMNING>> GetAfstemningAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.AFSTEMNING.ToListAsync();
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<SEQUENCE_TRACKING> GetSequenceTrackingTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.SEQUENCE_TRACKING.ToList();
-    }
+        /// <inheritdoc />
+        public async Task<IEnumerable<AUDIT_FK_ERROR>> GetAuditFkErrorAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.AUDIT_FK_ERROR.ToListAsync();
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<STATEMENT_COLUMN> GetStatementColumnsTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.STATEMENT_COLUMN.ToList();
-    }
+        /// <inheritdoc />
+        public async Task<IEnumerable<AUDIT_LOGERROR>> GetAuditLogErrorAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.AUDIT_LOGERROR.ToListAsync();
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<STATEMENT_JOIN> GetStatementJoinsTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.STATEMENT_JOINS.ToList();
-    }
+        /// <inheritdoc />
+        public async Task<IEnumerable<AUDIT_LOGINFO>> GetAuditLogInfoAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.AUDIT_LOGINFO.ToListAsync();
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<STATEMENT_TABLE> GetStatementTablesTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.STATEMENT_TABLES.ToList();
-    }
+        /// <inheritdoc />
+        public async Task<IEnumerable<AUDIT_LOGINFO_TYPE>> GetAuditLogInfoTypesAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.AUDIT_LOGINFO_TYPE.ToListAsync();
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<SYS_HOUSEKEEPING> GetSysHousekeepingTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.SYS_HOUSEKEEPING.ToList();
-    }
+        /// <inheritdoc />
+        public async Task<IEnumerable<COLUMN_VALUE>> GetColumnValueAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.COLUMN_VALUE.ToListAsync();
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<SYS_HOUSEKEEPING_UUID> GetSysHousekeepingUuidTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.SYS_HOUSEKEEPING_UUID.ToList();
-    }
+        /// <inheritdoc />
+        public async Task<IEnumerable<DEST_TABLE>> GetDestTableAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.DEST_TABLE.ToListAsync();
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<TABLE_LOG> GetTableLogTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.TABLE_LOG.ToList();
-    }
+        /// <inheritdoc />
+        public async Task<IEnumerable<ENGINE_PROPERTY>> GetEnginePropertiesAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.ENGINE_PROPERTIES.ToListAsync();
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<V_ENGINE_PROPERTY> GetVEnginePropertiesTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.V_ENGINE_PROPERTIES.ToList();
-    }
+        /// <inheritdoc />
+        public async Task<IEnumerable<EXECUTION>> GetExecutionAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.EXECUTIONS.ToListAsync();
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<VOTE_COMBINATION> GetVoteCombinationTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.VOTE_COMBINATION.ToList();
-    }
+        /// <inheritdoc />
+        public async Task<IEnumerable<HEALTH_REPORT>> GetHealthReportAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.HEALTH_REPORT.ToListAsync();
+        }
 
-    /// <inheritdoc />
-    public IEnumerable<VOTE_RESULT> GetVoteResultTbl(string connStrKey)
-    {
-        using var db = new DefaultDbContext(GetDbOptions(connStrKey));
-        return db.VOTE_RESULT.ToList();
+        /// <inheritdoc />
+        public async Task<IEnumerable<LOGGING>> GetLoggingAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.LOGGING.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<LOGGING_CONTEXT>> GetLoggingContextAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.LOGGING_CONTEXT.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<MANAGER>> GetManagersAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            try
+            {
+                return await db.MANAGERS.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation(ex, "Tried to access the {MANAGERS} table, but it does not exist in the selected database.", nameof(db.MANAGERS));
+                return new List<MANAGER>();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<MANAGER_TRACKING>> GetManagerTrackingAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.MANAGER_TRACKING.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<MIGRATION_FILE>> GetMigrationFileAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.MIGRATION_FILE.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<SEQUENCE_TRACKING>> GetSequenceTrackingAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.SEQUENCE_TRACKING.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<STATEMENT_COLUMN>> GetStatementColumnsAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.STATEMENT_COLUMN.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<STATEMENT_JOIN>> GetStatementJoinsAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.STATEMENT_JOINS.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<STATEMENT_TABLE>> GetStatementTablesAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.STATEMENT_TABLES.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<SYS_HOUSEKEEPING>> GetSysHousekeepingAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.SYS_HOUSEKEEPING.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<SYS_HOUSEKEEPING_UUID>> GetSysHousekeepingUuidAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.SYS_HOUSEKEEPING_UUID.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<TABLE_LOG>> GetTableLogAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.TABLE_LOG.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<V_ENGINE_PROPERTY>> GetVEnginePropertiesAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.V_ENGINE_PROPERTIES.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<VOTE_COMBINATION>> GetVoteCombinationAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.VOTE_COMBINATION.ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<VOTE_RESULT>> GetVoteResultAsync(string connStrKey)
+        {
+            using var db = new DefaultDbContext(GetDbOptions(connStrKey));
+            return await db.VOTE_RESULT.ToListAsync();
+        }
     }
 }

@@ -31,81 +31,60 @@ namespace DataLibrary.DataAccess
         }
 
         #region Bytes received readings
-        public List<Reading> GetRcvReadingsSince(DateTime fromDate, string connStrKey)
+        public async Task<List<Reading>> GetRcvReadingsAsync(DateTime fromDate, string connStrKey)
         {
-            return GetReadings(fromDate, _receivedKey, connStrKey);
+            return await GetReadings(fromDate, _receivedKey, connStrKey);
         }
 
-        public List<Reading> GetRcvDeltaReadingsSince(DateTime fromDate, string connStrKey)
+        public async Task<List<Reading>> GetRcvDeltaReadingsAsync(DateTime fromDate, string connStrKey)
         {
-            return GetReadings(fromDate, _receivedDeltaKey, connStrKey);
+            return await GetReadings(fromDate, _receivedDeltaKey, connStrKey);
         }
 
-        public List<Reading> GetRcvSpeedReadingsSince(DateTime fromDate, string connStrKey)
+        public async Task<List<Reading>> GetRcvSpeedReadingsAsync(DateTime fromDate, string connStrKey)
         {
-            return GetReadings(fromDate, _receivedSpeedKey, connStrKey);
+            return await GetReadings(fromDate, _receivedSpeedKey, connStrKey);
         }
         #endregion
 
         #region Bytes send readings
-        public List<Reading> GetSendReadingsSince(DateTime fromDate, string connStrKey)
+        public async Task<List<Reading>> GetSendReadingsAsync(DateTime fromDate, string connStrKey)
         {
-            return GetReadings(fromDate, _sendKey, connStrKey);
+            return await GetReadings(fromDate, _sendKey, connStrKey);
         }
 
-        public List<Reading> GetSendDeltaReadingsSince(DateTime fromDate, string connStrKey)
+        public async Task<List<Reading>> GetSendDeltaReadingsAsync(DateTime fromDate, string connStrKey)
         {
-            return GetReadings(fromDate, _sendDeltaKey, connStrKey);
+            return await GetReadings(fromDate, _sendDeltaKey, connStrKey);
         }
 
-        public List<Reading> GetSendSpeedReadingsSince(DateTime fromDate, string connStrKey)
+        public async Task<List<Reading>> GetSendSpeedReadingsAsync(DateTime fromDate, string connStrKey)
         {
-            return GetReadings(fromDate, _sendSpeedKey, connStrKey);
+            return await GetReadings(fromDate, _sendSpeedKey, connStrKey);
         }
         #endregion
 
-        public bool TryGetUpdatedName(DateTime fromDate, out string name, string connStrKey)
+        public async Task<string?> GetNameAsync(DateTime fromDate, string connStrKey)
         {
-            name = "";
-
-            var value = GetInitValue(fromDate, _nameKey, ValueType.String, connStrKey);
-            if (value != null)
-            {
-                name = (string)value;
-            }
-
-            return value != null;
+            var value = await GetInitValue(fromDate, _nameKey, ValueType.String, connStrKey);
+            return (string?)value;
         }
 
-        public bool TryGetUpdatedMacAddress(DateTime fromDate, out string macAddress, string connStrKey)
+        public async Task<string?> GetMacAddressAsync(DateTime fromDate, string connStrKey)
         {
-            macAddress = "";
-
-            var value = GetInitValue(fromDate, _macAddressKey, ValueType.String, connStrKey);
-            if (value != null)
-            {
-                macAddress = (string)value;
-            }
-
-            return value != null;
+            var value = await GetInitValue(fromDate, _macAddressKey, ValueType.String, connStrKey);
+            return (string?)value;
         }
 
-        public bool TryGetUpdatedSpeed(DateTime fromDate, out long speed, string connStrKey)
+        public async Task<long?> GetSpeedAsync(DateTime fromDate, string connStrKey)
         {
-            speed = 0;
-
-            var value = GetInitValue(fromDate, _speedKey, ValueType.Numeric, connStrKey);
-            if (value != null)
-            {
-                speed = Convert.ToInt64(value);
-            }
-
-            return value != null;
+            var value = await GetInitValue(fromDate, _speedKey, ValueType.Numeric, connStrKey);
+            return (long?)value;
         }
 
-        internal List<Reading> GetReadings(DateTime fromDate, string reportKey, string connStrKey)
+        internal async Task<List<Reading>> GetReadings(DateTime fromDate, string reportKey, string connStrKey)
         {
-            var output = from e in _db.GetHealthReportTbl(connStrKey)
+            var output = from e in await _db.GetHealthReportAsync(connStrKey)
                          where e.LOG_TIME > fromDate
                          where e.REPORT_TYPE == _readingsReportType && e.REPORT_KEY == reportKey
                          where e.LOG_TIME.HasValue && e.REPORT_NUMERIC_VALUE.HasValue
@@ -119,19 +98,20 @@ namespace DataLibrary.DataAccess
             return output.ToList();
         }
 
-        internal object? GetInitValue(DateTime fromDate, string reportKey, ValueType type, string connStrKey)
+        internal async Task<object?> GetInitValue(DateTime fromDate, string reportKey, ValueType type, string connStrKey)
         {
-            var result = _db.GetHealthReportTbl(connStrKey)
-                .Where(x => x.LOG_TIME > fromDate)
-                .OrderBy(x => x.LOG_TIME)
-                .LastOrDefault(x => x.REPORT_TYPE == _initReportType && x.REPORT_KEY == reportKey);
+            var result = (from e in await _db.GetHealthReportAsync(connStrKey)
+                          where e.LOG_TIME > fromDate
+                          orderby e.LOG_TIME
+                          where e.REPORT_TYPE == _initReportType && e.REPORT_KEY == reportKey
+                          select e).LastOrDefault();
 
             switch (type)
             {
                 case ValueType.String:
                     return result?.REPORT_STRING_VALUE;
                 case ValueType.Numeric:
-                    return result?.REPORT_NUMERIC_VALUE!.Value.ToString();
+                    return result?.REPORT_NUMERIC_VALUE;
                 default:
                     throw new Exception("The specified ValueType is invalid");
             }

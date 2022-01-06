@@ -14,9 +14,9 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public IEnumerable<Manager> GetManagersSinceDate(DateTime fromDate, string connStrKey)
+        public async Task<IEnumerable<Manager>> GetSinceAsync(DateTime fromDate, string connStrKey)
         {
-            var engineProperties = (from e in _db.GetEnginePropertiesTbl(connStrKey)
+            var engineProperties = (from e in await _db.GetEnginePropertiesAsync(connStrKey)
                                     where e.TIMESTAMP.HasValue && e.TIMESTAMP.Value > fromDate
                                     orderby e.TIMESTAMP
                                     select e)

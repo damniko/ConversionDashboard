@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AutoMapper;
 using DataLibrary.DataAccess.Interfaces;
 using DesktopUI.Models;
@@ -17,13 +18,11 @@ namespace DesktopUI.Controllers
             _mapper = mapper;
         }
 
-        public List<LogEntryDto> GetLogEntries(DateTime fromDate)
+        public async Task<List<LogEntryDto>> GetSinceAsync(DateTime fromDate)
         {
             // TODO - make the connection string changeable through settings
-            var logEntries = _logData.GetSince(fromDate, "Default");
-            
+            var logEntries = await _logData.GetSinceAsync(fromDate, "Default");
             List<LogEntryDto> result = _mapper.Map<List<LogEntryDto>>(logEntries);
-
             return result;
         }
     }

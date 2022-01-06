@@ -12,22 +12,21 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<StatementTable> GetStatementTablesSinceDate(DateTime fromDate, string connStrKey)
+        public async Task<List<StatementTable>> GetAsync(DateTime fromDate, string connStrKey)
         {
-            var output = _db.GetStatementTablesTbl(connStrKey)
-                .Where(x => x.CREATED > fromDate)
-                .OrderBy(x => x.CREATED)
-                .Select(x => new StatementTable
-                {
-                    Date = x.CREATED,
-                    Manager = x.MGR,
-                    Identifier = x.IDENTIFIER,
-                    IdentifierShort = x.IDENTIFIER_SHORT,
-                    Schema = x.SCHEMA_NAME_FULL,
-                    SchemaShort = x.SCHEMA_NAME,
-                    Table = x.TABLE_NAME
-                })
-                .ToList();
+            var output = (from e in await _db.GetStatementTablesAsync(connStrKey)
+                          where e.CREATED > fromDate
+                          orderby e.CREATED
+                          select new StatementTable
+                          {
+                              Date = e.CREATED,
+                              Manager = e.MGR,
+                              Identifier = e.IDENTIFIER,
+                              IdentifierShort = e.IDENTIFIER_SHORT,
+                              Schema = e.SCHEMA_NAME_FULL,
+                              SchemaShort = e.SCHEMA_NAME,
+                              Table = e.TABLE_NAME
+                          }).ToList();
 
             return output;
         }

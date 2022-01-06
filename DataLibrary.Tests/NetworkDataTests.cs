@@ -22,7 +22,7 @@ namespace DataLibrary.Tests
         }
 
         [Fact]
-        public void GetReadings_ConvertsMultipleEntries_ToReadings()
+        public async void GetReadings_ConvertsMultipleEntries_ToReadings()
         {
             // Arrange
             string key = "Interface 0: Bytes Received";
@@ -44,11 +44,11 @@ namespace DataLibrary.Tests
                 REPORT_KEY = key,
                 REPORT_NUMERIC_VALUE = secondValue
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { firstEntry, secondEntry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { firstEntry, secondEntry });
 
             // Act
-            var readings = _sut.GetReadings(DateTime.MinValue, key, "");
+            var readings = await _sut.GetReadings(DateTime.MinValue, key, "");
 
             // Assert
             readings.Should().HaveCount(2, "because two entries exist")
@@ -58,7 +58,7 @@ namespace DataLibrary.Tests
         }
         
         [Fact]
-        public void GetReadings_ReportNumericValueIsNull_IgnoresInvalidEntry()
+        public async void GetReadings_ReportNumericValueIsNull_IgnoresInvalidEntry()
         {
             // Arrange
             string key = "Interface 0: Bytes Received";
@@ -69,18 +69,18 @@ namespace DataLibrary.Tests
                 REPORT_KEY = key,
                 REPORT_NUMERIC_VALUE = null
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { entry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var readings = _sut.GetReadings(DateTime.MinValue, key, "");
+            var readings = await _sut.GetReadings(DateTime.MinValue, key, "");
 
             // Assert
             readings.Should().BeEmpty("because the one entry does not have a value for {0}", nameof(HEALTH_REPORT.REPORT_NUMERIC_VALUE));
         }
 
         [Fact]
-        public void GetReadings_MultipleKeys_GetsCorrectKey()
+        public async void GetReadings_MultipleKeys_GetsCorrectKey()
         {
             // Arrange
             string rcvReportKey = "Interface 0: Bytes Received";
@@ -131,8 +131,8 @@ namespace DataLibrary.Tests
                     REPORT_NUMERIC_VALUE = 6
                 }
             };
-             _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(entries);
+             _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(entries);
             
             var expected = new Reading
             {
@@ -141,7 +141,7 @@ namespace DataLibrary.Tests
             };
 
             // Act
-            var readings = _sut.GetReadings(DateTime.MinValue, rcvReportKey, "");
+            var readings = await _sut.GetReadings(DateTime.MinValue, rcvReportKey, "");
 
             // Assert
             readings.Should().ContainSingle("because there is one entry for each report key")
@@ -149,7 +149,7 @@ namespace DataLibrary.Tests
         }
 
         [Fact]
-        public void GetReadings_LogTimeIsNull_IgnoresInvalidEntry()
+        public async void GetReadings_LogTimeIsNull_IgnoresInvalidEntry()
         {
             // Arrange
             string key = "Interface 0: Bytes Received";
@@ -160,18 +160,18 @@ namespace DataLibrary.Tests
                 REPORT_KEY = key,
                 REPORT_NUMERIC_VALUE = 100
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { entry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var readings = _sut.GetReadings(DateTime.MinValue, key, "");
+            var readings = await _sut.GetReadings(DateTime.MinValue, key, "");
 
             // Assert
             readings.Should().BeEmpty("because the one entry does not have a value for {0}", nameof(HEALTH_REPORT.LOG_TIME));
         }
 
         [Fact]
-        public void TryGetUpdatedName_HasOneEntry_ReturnsTrueAndValue()
+        public async void GetNameAsync_HasOneEntry_ReturnsTrueAndValue()
         {
             // Arrange
             string expected = "Test Interface";
@@ -182,19 +182,19 @@ namespace DataLibrary.Tests
                 REPORT_KEY = "Interface 0: Name",
                 REPORT_STRING_VALUE = expected
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { entry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var result = _sut.TryGetUpdatedName(DateTime.MinValue, out string actual, "");
+            var result = await _sut.GetNameAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because one entry exists");
-            actual.Should().Be(expected);
+            result.Should().NotBeNull("because one entry exists")
+                .And.Be(expected);
         }
 
         [Fact]
-        public void TryGetUpdatedMacAddress_HasOneEntry_ReturnsTrueAndValue()
+        public async void GetMacAddressAsync_HasOneEntry_ReturnsTrueAndValue()
         {
             // Arrange
             string expected = "Test MAC Address";
@@ -205,19 +205,19 @@ namespace DataLibrary.Tests
                 REPORT_KEY = "Interface 0: MAC address",
                 REPORT_STRING_VALUE = expected
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { entry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var result = _sut.TryGetUpdatedMacAddress(DateTime.MinValue, out string actual, "");
+            var result = await _sut.GetMacAddressAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because one entry exists");
-            actual.Should().Be(expected);
+            result.Should().NotBeNull("because one entry exists")
+                .And.Be(expected);
         }
 
         [Fact]
-        public void TryGetUpdatedSpeed_HasOneEntry_ReturnsTrueAndValue()
+        public async void GetSpeedAsync_HasOneEntry_ReturnsTrueAndValue()
         {
             // Arrange
             long expected = 1000;
@@ -228,15 +228,14 @@ namespace DataLibrary.Tests
                 REPORT_KEY = "Interface 0: Speed",
                 REPORT_NUMERIC_VALUE = expected
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { entry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var result = _sut.TryGetUpdatedSpeed(DateTime.MinValue, out long actual, "");
+            var result = await _sut.GetSpeedAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because one entry exists");
-            actual.Should().Be(expected);
+            result.Should().NotBeNull("because one entry exists").And.Be(expected);
         }
     }
 }

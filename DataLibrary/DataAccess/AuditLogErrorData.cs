@@ -12,9 +12,9 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<AuditLogError> GetAuditLogErrorsSinceDate(DateTime fromDate, string connStrKey)
+        public async Task<List<AuditLogError>> GetAsync(DateTime fromDate, string connStrKey)
         {
-            var data = _db.GetAuditLogErrorTbl(connStrKey);
+            var data = await _db.GetAuditLogErrorAsync(connStrKey);
             
             var output = (from entry in data
                           where entry.CREATED > fromDate

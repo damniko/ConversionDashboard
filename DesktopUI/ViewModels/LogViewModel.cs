@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using DesktopUI.Controllers;
@@ -22,7 +24,7 @@ namespace DesktopUI.ViewModels
         private readonly LogController _controller;
         private readonly ExecutionController _executionController;
         private readonly List<LogEntryDto> _entries = new();
-        private readonly object _updateLock = new();
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
         private DateTime _lastUpdated = System.Data.SqlTypes.SqlDateTime.MinValue.Value;
         private bool _showInfo = true;
         private bool _showWarning = true;
@@ -144,7 +146,7 @@ namespace DesktopUI.ViewModels
         /// <summary>
         /// Gets any new data and triggers an update for the view.
         /// </summary>
-        public ICommand UpdateDataCmd => new RelayCommand(() => UpdateData(DateTime.Now));
+        public ICommand UpdateDataCmd => new RelayCommand(() => Task.Run(() => UpdateData(DateTime.Now)));
         /// <summary>
         /// Clears the value of the current <see cref="SelectedExecution"/>.
         /// </summary>
@@ -180,22 +182,27 @@ namespace DesktopUI.ViewModels
         /// </summary>
         /// <remarks>Since calls to this function may overlap, a lock is used to avoid duplicating data.</remarks>
         /// <param name="date">The date at which the update was requested.</param>
-        private void UpdateData(DateTime date)
+        private async Task UpdateData(DateTime date)
         {
-            lock (_updateLock)
+            _semaphore.Wait();
+            try
             {
-                UpdateExecutions();
-                UpdateEntries();
+                await UpdateExecutions();
+                await UpdateEntries();
+            }
+            finally
+            {
                 _lastUpdated = date;
+                _semaphore.Release();
             }
         }
 
         /// <summary>
         /// Gets executions newer than <see cref="_lastUpdated"/> from the <see cref="ExecutionController"/>, and adds them to the view.
         /// </summary>
-        private void UpdateExecutions()
+        private async Task UpdateExecutions()
         {
-            var newExecs = _executionController.GetExecutions(_lastUpdated);
+            var newExecs = await _executionController.GetSinceAsync(_lastUpdated);
             App.Current.Dispatcher.Invoke(() =>
             {
                 foreach(var exec in newExecs)
@@ -216,9 +223,9 @@ namespace DesktopUI.ViewModels
         /// <summary>
         /// Gets log entries newer than <see cref="_lastUpdated"/> from the <see cref="LogController"/>, and adds them to the view.
         /// </summary>
-        private void UpdateEntries()
+        private async Task UpdateEntries()
         {
-            var newEntries = _controller.GetLogEntries(_lastUpdated);
+            var newEntries = await _controller.GetSinceAsync(_lastUpdated);
 
             if (newEntries.Any() is false) return;
 
