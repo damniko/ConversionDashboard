@@ -13,9 +13,9 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<Reconciliation> GetSince(DateTime fromDate, string connStrKey)
+        public async Task<List<Reconciliation>> GetAsync(DateTime fromDate, string connStrKey)
         {
-            var output = (from r in _db.GetAfstemningTbl(connStrKey)
+            var output = (from r in await _db.GetAfstemningAsync(connStrKey)
                           where r.AFSTEMTDATO > fromDate
                           orderby r.AFSTEMTDATO
                           select new Reconciliation

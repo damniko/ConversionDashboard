@@ -12,150 +12,150 @@ public interface IDataAccess
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<AFSTEMNING> GetAfstemningTbl(string connStrKey);
+    Task<IEnumerable<AFSTEMNING>> GetAfstemningAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the AUDIT_FK_LOGERROR table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<AUDIT_FK_ERROR> GetAuditFkErrorTbl(string connStrKey);
+    Task<IEnumerable<AUDIT_FK_ERROR>> GetAuditFkErrorAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the AUDIT_LOGERROR table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<AUDIT_LOGERROR> GetAuditLogErrorTbl(string connStrKey);
+    Task<IEnumerable<AUDIT_LOGERROR>> GetAuditLogErrorAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the AUDIT_LOGINFO table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<AUDIT_LOGINFO> GetAuditLogInfoTbl(string connStrKey);
+    Task<IEnumerable<AUDIT_LOGINFO>> GetAuditLogInfoAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the AUDIT_LOGINFO_TYPES table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<AUDIT_LOGINFO_TYPE> GetAuditLogInfoTypesTbl(string connStrKey);
+    Task<IEnumerable<AUDIT_LOGINFO_TYPE>> GetAuditLogInfoTypesAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the COLUMN_VALUE table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<COLUMN_VALUE> GetColumnValueTbl(string connStrKey);
+    Task<IEnumerable<COLUMN_VALUE>> GetColumnValueAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the DEST_TABLE table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<DEST_TABLE> GetDestTableTbl(string connStrKey);
+    Task<IEnumerable<DEST_TABLE>> GetDestTableAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the ENGINE_PROPERTIES table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<ENGINE_PROPERTY> GetEnginePropertiesTbl(string connStrKey);
+    Task<IEnumerable<ENGINE_PROPERTY>> GetEnginePropertiesAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the EXECUTIONS table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<EXECUTION> GetExecutionTbl(string connStrKey);
+    Task<IEnumerable<EXECUTION>> GetExecutionAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the HEALTH_REPORT table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<HEALTH_REPORT> GetHealthReportTbl(string connStrKey);
+    Task<IEnumerable<HEALTH_REPORT>> GetHealthReportAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the LOGGING table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<LOGGING> GetLoggingTbl(string connStrKey);
+    Task<IEnumerable<LOGGING>> GetLoggingAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the LOGGING_CONTEXT table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<LOGGING_CONTEXT> GetLoggingContextTbl(string connStrKey);
+    Task<IEnumerable<LOGGING_CONTEXT>> GetLoggingContextAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the MANAGERS table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<MANAGER> GetManagersTbl(string connStrKey);
+    Task<IEnumerable<MANAGER>> GetManagersAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the MANAGER_TRACKING table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<MANAGER_TRACKING> GetManagerTrackingTbl(string connStrKey);
+    Task<IEnumerable<MANAGER_TRACKING>> GetManagerTrackingAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the MIGRATION_FILE table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<MIGRATION_FILE> GetMigrationFileTbl(string connStrKey);
+    Task<IEnumerable<MIGRATION_FILE>> GetMigrationFileAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the SEQUENCE_TRACKING table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<SEQUENCE_TRACKING> GetSequenceTrackingTbl(string connStrKey);
+    Task<IEnumerable<SEQUENCE_TRACKING>> GetSequenceTrackingAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the STATEMENT_COLUMNS table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<STATEMENT_COLUMN> GetStatementColumnsTbl(string connStrKey);
+    Task<IEnumerable<STATEMENT_COLUMN>> GetStatementColumnsAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the STATEMENT_JOINS table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<STATEMENT_JOIN> GetStatementJoinsTbl(string connStrKey);
+    Task<IEnumerable<STATEMENT_JOIN>> GetStatementJoinsAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the STATEMENT_TABLES table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<STATEMENT_TABLE> GetStatementTablesTbl(string connStrKey);
+    Task<IEnumerable<STATEMENT_TABLE>> GetStatementTablesAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the SYS_HOUSEKEEPING table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<SYS_HOUSEKEEPING> GetSysHousekeepingTbl(string connStrKey);
+    Task<IEnumerable<SYS_HOUSEKEEPING>> GetSysHousekeepingAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the SYS_HOUSEKEEPING_UUID table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<SYS_HOUSEKEEPING_UUID> GetSysHousekeepingUuidTbl(string connStrKey);
+    Task<IEnumerable<SYS_HOUSEKEEPING_UUID>> GetSysHousekeepingUuidAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the TABLE_LOG table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<TABLE_LOG> GetTableLogTbl(string connStrKey);
+    Task<IEnumerable<TABLE_LOG>> GetTableLogAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the V_ENGINE_PROPERTIES table.
     /// </summary>
     /// <remarks>This table is mysterious! It is auto-generated by Entity Framework.</remarks>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<V_ENGINE_PROPERTY> GetVEnginePropertiesTbl(string connStrKey);
+    Task<IEnumerable<V_ENGINE_PROPERTY>> GetVEnginePropertiesAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the VOTE_COMBINATION table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<VOTE_COMBINATION> GetVoteCombinationTbl(string connStrKey);
+    Task<IEnumerable<VOTE_COMBINATION>> GetVoteCombinationAsync(string connStrKey);
     /// <summary>
     /// Retrieves all entries from the VOTE_RESULT table.
     /// </summary>
     /// <param name="connStrKey">Connection string for the database.</param>
     /// <returns>A queryable list of all entries.</returns>
-    IEnumerable<VOTE_RESULT> GetVoteResultTbl(string connStrKey);
+    Task<IEnumerable<VOTE_RESULT>> GetVoteResultAsync(string connStrKey);
 }

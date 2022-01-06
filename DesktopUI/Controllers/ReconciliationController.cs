@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AutoMapper;
 using DataLibrary.DataAccess.Interfaces;
 using DesktopUI.Models;
@@ -17,17 +18,17 @@ namespace DesktopUI.Controllers
             _mapper = mapper;
         }
 
-        public List<ReconciliationDto> GetReconciliations(DateTime fromDate)
+        public async Task<List<ReconciliationDto>> GetSince(DateTime fromDate)
         {
-            var entries = _reconciliationData.GetSince(fromDate, "Default");
+            var entries = await _reconciliationData.GetAsync(fromDate, "Default");
             var result = _mapper.Map<List<ReconciliationDto>>(entries);
             return result;
         }
 
-        public Dictionary<string, List<ReconciliationDto>> GetManagerReconciliationDict(DateTime fromDate)
+        public async Task<Dictionary<string, List<ReconciliationDto>>> GetManagerReconciliationDict(DateTime fromDate)
         {
             var result = new Dictionary<string, List<ReconciliationDto>>();
-            var entries = GetReconciliations(fromDate);
+            var entries = await GetSince(fromDate);
             foreach (var entry in entries)
             {
                 if (result.ContainsKey(entry.Manager))

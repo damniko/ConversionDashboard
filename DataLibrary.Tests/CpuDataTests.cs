@@ -21,21 +21,21 @@ namespace DataLibrary.Tests
         }
 
         [Fact]
-        public void GetReadingsSinceDate_HasNoEntries_ReturnsEmptyList()
+        public async void GetReadingsAsync_HasNoEntries_ReturnsEmptyList()
         {
             // Arrange
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT>());
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT>());
 
             // Act
-            var readings = _sut.GetReadingsSince(DateTime.MinValue, "");
+            var readings = await _sut.GetReadingsAsync(DateTime.MinValue, "");
 
             // Assert
             readings.Should().BeEmpty("because no entries exist");
         }
 
         [Fact]
-        public void GetReadingsSinceDate_EntryHasNoValue_SkipsEntry()
+        public async void GetReadingsAsync_EntryHasNoValue_SkipsEntry()
         {
             // Arrange
             var entry = new HEALTH_REPORT
@@ -44,18 +44,18 @@ namespace DataLibrary.Tests
                 REPORT_KEY = "LOAD",
                 REPORT_NUMERIC_VALUE = null
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { entry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var readings = _sut.GetReadingsSince(DateTime.MinValue, "");
+            var readings = await _sut.GetReadingsAsync(DateTime.MinValue, "");
 
             // Assert
             readings.Should().BeEmpty("because the single entry does not have a valid value");
         }
 
         //[Fact]
-        //public void GetReadingsSinceDate_EntryHasNoValue_LogsWarning()
+        //public void GetReadingsAsync_EntryHasNoValue_LogsWarning()
         //{
         //    // Arrange
         //    var entry = new HEALTH_REPORT
@@ -68,14 +68,14 @@ namespace DataLibrary.Tests
         //        .Returns(new List<HEALTH_REPORT> { entry });
 
         //    // Act
-        //    var readings = _sut.GetReadingsSinceDate(DateTime.MinValue, "");
+        //    var readings = _sut.GetReadingsAsync(DateTime.MinValue, "");
 
         //    // Assert
         //    // TODO - add this when the logger is implemented
         //}
 
         [Fact]
-        public void GetReadingsSinceDate_HasOneEntry_ReturnsSingleReading()
+        public async void GetReadingsAsync_HasOneEntry_ReturnsSingleReading()
         {
             // Arrange
             double expected = 0.25d;
@@ -87,11 +87,11 @@ namespace DataLibrary.Tests
                 REPORT_KEY = "LOAD",
                 REPORT_NUMERIC_VALUE = value
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { entry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var readings = _sut.GetReadingsSince(DateTime.MinValue, "");
+            var readings = await _sut.GetReadingsAsync(DateTime.MinValue, "");
 
             // Assert
             readings.Should().ContainSingle("because one entry exists")
@@ -99,7 +99,7 @@ namespace DataLibrary.Tests
         }
 
         [Fact]
-        public void GetReadingsSinceDate_HasMultipleEntries_ReturnsReadings()
+        public async void GetReadingsAsync_HasMultipleEntries_ReturnsReadings()
         {
             // Arrange
             double firstExpected = 0.25d;
@@ -120,11 +120,11 @@ namespace DataLibrary.Tests
                 REPORT_KEY = "LOAD",
                 REPORT_NUMERIC_VALUE = secondValue
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { firstEntry, secondEntry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { firstEntry, secondEntry });
 
             // Act
-            var readings = _sut.GetReadingsSince(DateTime.MinValue, "");
+            var readings = await _sut.GetReadingsAsync(DateTime.MinValue, "");
 
             // Assert
             readings.Should().HaveCount(2, "because two entries exist")
@@ -134,21 +134,21 @@ namespace DataLibrary.Tests
         }
     
         [Fact]
-        public void TryGetUpdatedName_HasNoEntries_ReturnsFalse()
+        public async void GetNameAsync_HasNoEntries_ReturnsNull()
         {
             // Arrange
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT>());
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT>());
 
             // Act
-            var result = _sut.TryGetUpdatedName(DateTime.MinValue, out _, "");
+            var result = await _sut.GetNameAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeFalse("because no entry was found");
+            result.Should().BeNull("because no entry was found");
         }
 
         [Fact]
-        public void TryGetUpdatedName_HasMultipleEntries_ReturnsLatest()
+        public async void GetNameAsync_HasMultipleEntries_ReturnsLatest()
         {
             // Arrange
             string expected = "Test CPU";
@@ -165,33 +165,33 @@ namespace DataLibrary.Tests
                 REPORT_KEY = "CPU Name",
                 REPORT_STRING_VALUE = expected
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { firstEntry, secondEntry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { firstEntry, secondEntry });
 
             // Act
-            var result = _sut.TryGetUpdatedName(DateTime.MinValue, out string name, "");
+            var result = await _sut.GetNameAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because two entries exist");
-            name.Should().Be(expected);
+            result.Should().NotBeNull("because two entries exist")
+                .And.Be(expected);
         }
 
         [Fact]
-        public void TryGetUpdatedLogicalCores_HasNoEntries_ReturnsFalse()
+        public async void GetLogicalCoresAsync_HasNoEntries_ReturnsNull()
         {
             // Arrange
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT>());
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT>());
 
             // Act
-            var result = _sut.TryGetUpdatedLogicalCores(DateTime.MinValue, out _, "");
+            var result = await _sut.GetLogicalCoresAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeFalse("because no entry exists");
+            result.Should().BeNull("because no entry exists");
         }
 
         [Fact]
-        public void TryGetUpdatedLogicalCores_HasMultipleEntries_ReturnsLatest()
+        public async void GetLogicalCoresAsync_HasMultipleEntries_ReturnsLatest()
         {
             // Arrange
             long expected = 8;
@@ -209,33 +209,33 @@ namespace DataLibrary.Tests
                 REPORT_KEY = "LogicalCores",
                 REPORT_NUMERIC_VALUE = expected
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { firstEntry, secondEntry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { firstEntry, secondEntry });
 
             // Act
-            var result = _sut.TryGetUpdatedLogicalCores(DateTime.MinValue, out long cores, "");
+            var result = await _sut.GetLogicalCoresAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because two entries exist");
-            cores.Should().Be(expected);
+            result.Should().NotBeNull("because two entries exist")
+                .And.Be(expected);
         }
 
         [Fact]
-        public void TryGetUpdatedPhysicalCores_HasNoEntries_ReturnsFalse()
+        public async void GetPhysicalCoresAsync_HasNoEntries_ReturnsNull()
         {
             // Arrange
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT>());
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT>());
 
             // Act
-            var result = _sut.TryGetUpdatedPhysicalCores(DateTime.MinValue, out _, "");
+            var result = await _sut.GetPhysicalCoresAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeFalse("because no entry exists");
+            result.Should().BeNull("because no entry exists");
         }
 
         [Fact]
-        public void TryGetUpdatedPhysicalCores_HasMultipleEntries_ReturnsLatest()
+        public async void GetPhysicalCoresAsync_HasMultipleEntries_ReturnsLatest()
         {
             // Arrange
             long expected = 8;
@@ -253,33 +253,33 @@ namespace DataLibrary.Tests
                 REPORT_KEY = "PhysicalCores",
                 REPORT_NUMERIC_VALUE = expected
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { firstEntry, secondEntry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { firstEntry, secondEntry });
 
             // Act
-            var result = _sut.TryGetUpdatedPhysicalCores(DateTime.MinValue, out long cores, "");
+            var result = await _sut.GetPhysicalCoresAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because two entries exist");
-            cores.Should().Be(expected);
+            result.Should().NotBeNull("because two entries exist")
+                .And.Be(expected);
         }
 
         [Fact]
-        public void TryGetUpdatedMaxFrequency_HasNoEntries_ReturnsFalse()
+        public async void GetMaxFrequencyAsync_HasNoEntries_ReturnsNull()
         {
             // Arrange
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT>());
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT>());
 
             // Act
-            var result = _sut.TryGetUpdatedMaxFrequency(DateTime.MinValue, out _, "");
+            var result = await _sut.GetMaxFrequencyAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeFalse("because no entry exists");
+            result.Should().BeNull("because no entry exists");
         }
 
         [Fact]
-        public void TryGetUpdatedMaxFrequency_HasMultipleEntries_ReturnsLatest()
+        public async void GetMaxFrequencyAsync_HasMultipleEntries_ReturnsLatest()
         {
             // Arrange
             long expected = 20000;
@@ -297,15 +297,15 @@ namespace DataLibrary.Tests
                 REPORT_KEY = "CPU Max frequency",
                 REPORT_NUMERIC_VALUE = expected
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { firstEntry, secondEntry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { firstEntry, secondEntry });
 
             // Act
-            var result = _sut.TryGetUpdatedMaxFrequency(DateTime.MinValue, out long maxFrequency, "");
+            var result = await _sut.GetMaxFrequencyAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because two entries exist");
-            maxFrequency.Should().Be(expected);
+            result.Should().NotBeNull("because two entries exist")
+                .And.Be(expected);
         }
     }
 }

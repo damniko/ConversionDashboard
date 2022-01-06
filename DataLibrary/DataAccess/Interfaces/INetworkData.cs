@@ -1,17 +1,17 @@
 ﻿using DataLibrary.Models;
 
-namespace DataLibrary.DataAccess.Interfaces
+namespace DataLibrary.DataAccess
 {
     public interface INetworkData
     {
-        List<Reading> GetRcvDeltaReadingsSince(DateTime fromDate, string connStrKey);
-        List<Reading> GetRcvReadingsSince(DateTime fromDate, string connStrKey);
-        List<Reading> GetRcvSpeedReadingsSince(DateTime fromDate, string connStrKey);
-        List<Reading> GetSendDeltaReadingsSince(DateTime fromDate, string connStrKey);
-        List<Reading> GetSendReadingsSince(DateTime fromDate, string connStrKey);
-        List<Reading> GetSendSpeedReadingsSince(DateTime fromDate, string connStrKey);
-        bool TryGetUpdatedMacAddress(DateTime fromDate, out string macAddress, string connStrKey);
-        bool TryGetUpdatedName(DateTime fromDate, out string name, string connStrKey);
-        bool TryGetUpdatedSpeed(DateTime fromDate, out long speed, string connStrKey);
+        Task<string?> GetMacAddressAsync(DateTime fromDate, string connStrKey);
+        Task<string?> GetNameAsync(DateTime fromDate, string connStrKey);
+        Task<List<Reading>> GetRcvDeltaReadingsAsync(DateTime fromDate, string connStrKey);
+        Task<List<Reading>> GetRcvReadingsAsync(DateTime fromDate, string connStrKey);
+        Task<List<Reading>> GetRcvSpeedReadingsAsync(DateTime fromDate, string connStrKey);
+        Task<List<Reading>> GetSendDeltaReadingsAsync(DateTime fromDate, string connStrKey);
+        Task<List<Reading>> GetSendReadingsAsync(DateTime fromDate, string connStrKey);
+        Task<List<Reading>> GetSendSpeedReadingsAsync(DateTime fromDate, string connStrKey);
+        Task<long?> GetSpeedAsync(DateTime fromDate, string connStrKey);
     }
 }

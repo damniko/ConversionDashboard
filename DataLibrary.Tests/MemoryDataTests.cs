@@ -27,7 +27,7 @@ namespace DataLibrary.Tests
         [InlineData(20, 100, 0.80d)]
         [InlineData(0, 100, 1.00d)]
         [InlineData(100, 100, 0.00d)]
-        public void GetReadingsSinceDate_HasOneTotal_CalculatesCorrectValue(long? available, long? total, double expected)
+        public async void GetReadingsAsync_HasOneTotal_CalculatesCorrectValue(long available, long total, double expected)
         {
             // Arrange
             var entries = new List<HEALTH_REPORT>
@@ -47,11 +47,11 @@ namespace DataLibrary.Tests
                     LOG_TIME = DateTime.Parse("2000/01/01 10:00:05")
                 }
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(entries);
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(entries);
 
             // Act
-            var result = _sut.GetReadingsSinceDate(DateTime.MinValue, "");
+            var result = await _sut.GetReadingsAsync(DateTime.MinValue, "");
 
             // Assert
             result.Should().ContainSingle()
@@ -59,7 +59,7 @@ namespace DataLibrary.Tests
         }
 
         [Fact]
-        public void GetReadingsSinceDate_HasMultipleTotals_CalculatesCorrectLoadPercentages()
+        public async void GetReadingsAsync_HasMultipleTotals_CalculatesCorrectLoadPercentages()
         {
             // Arrange
             long firstTotal = 100;
@@ -99,11 +99,11 @@ namespace DataLibrary.Tests
                     LOG_TIME = DateTime.Parse("2000/01/01 10:00:15")
                 }
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(entries);
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(entries);
 
             // Act
-            var result = _sut.GetReadingsSinceDate(DateTime.MinValue, "");
+            var result = await _sut.GetReadingsAsync(DateTime.MinValue, "");
 
             // Assert
             result.Should().HaveCount(2, "because there are two readings")
@@ -114,7 +114,7 @@ namespace DataLibrary.Tests
         }
 
         [Fact]
-        public void GetLatestTotal_HasOneEntry_ReturnsTotalValue()
+        public async void GetTotalAsync_HasOneEntry_ReturnsTotalValue()
         {
             // Arrange
             long expected = 100;
@@ -128,33 +128,32 @@ namespace DataLibrary.Tests
                     LOG_TIME = DateTime.Parse("2010/01/01 10:00:00")
                 }
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(entries);
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(entries);
 
             // Act
-            var result = _sut.TryGetUpdatedTotal(DateTime.MinValue, out long actual, "");
+            var result = await _sut.GetTotalAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because one entry exists");
-            actual.Should().Be(expected);
+            result.Should().NotBeNull("because one entry exists").And.Be(expected);
         }
 
         [Fact]
-        public void GetLatestTotal_HasNoEntries_ReturnsNull()
+        public async void GetTotalAsync_HasNoEntries_ReturnsNull()
         {
             // Arrange
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(Array.Empty<HEALTH_REPORT>);
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(Array.Empty<HEALTH_REPORT>);
 
             // Act
-            var result = _sut.TryGetUpdatedTotal(DateTime.MinValue, out _, "");
+            var result = await _sut.GetTotalAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeFalse("because no entries exist");
+            result.Should().BeNull("because no entries exist");
         }
 
         [Fact]
-        public void GetLatestTotal_HasMultipleEntries_ReturnsLatestTotalValue()
+        public async void GetTotalAsync_HasMultipleEntries_ReturnsLatestTotalValue()
         {
             // Arrange
             long expected = 300;
@@ -182,15 +181,14 @@ namespace DataLibrary.Tests
                     LOG_TIME = DateTime.Parse("2000/01/01 10:00:10")
                 }
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(entries);
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(entries);
 
             // Act
-            var result = _sut.TryGetUpdatedTotal(DateTime.MinValue, out long actual, "");
+            var result = await _sut.GetTotalAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because multiple valid entries exist");
-            actual.Should().Be(expected, "because this is the value of the latest entry");
+            result.Should().NotBeNull("because multiple valid entries exist").And.Be(expected);
         }
 
         // TODO - test logger when it is implemented

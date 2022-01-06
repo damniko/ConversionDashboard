@@ -12,9 +12,9 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<Execution> GetSince(DateTime fromDate, string connStrKey)
+        public async Task<List<Execution>> GetSinceAsync(DateTime fromDate, string connStrKey)
         {
-            var executionData = _db.GetExecutionTbl(connStrKey);
+            var executionData = await _db.GetExecutionAsync(connStrKey);
 
             var entries = (from e in executionData
                           where e.CREATED > fromDate
@@ -26,17 +26,17 @@ namespace DataLibrary.DataAccess
                               StartTime = e.CREATED.GetValueOrDefault(),
                           }).ToList();
 
-            var output = AssignEndTimesAndContextDictionaries(entries, connStrKey);
+            var output = await AssignEndTimesAndContextDictionaries(entries, connStrKey);
             
             return output;
         }
 
-        public List<Execution> GetAll(string connStrKey) 
-            => GetSince(System.Data.SqlTypes.SqlDateTime.MinValue.Value, connStrKey);
+        public Task<List<Execution>> GetAllAsync(string connStrKey) 
+            => GetSinceAsync(System.Data.SqlTypes.SqlDateTime.MinValue.Value, connStrKey);
     
-        private List<Execution> AssignEndTimesAndContextDictionaries(List<Execution> entries, string connStrKey)
+        private async Task<List<Execution>> AssignEndTimesAndContextDictionaries(List<Execution> entries, string connStrKey)
         {
-            var contextData = _db.GetLoggingContextTbl(connStrKey).ToList();
+            var contextData = await _db.GetLoggingContextAsync(connStrKey);
             foreach (var execution in entries)
             {
                 var prev = entries.FirstOrDefault(e => e.Id == execution.Id - 1);
