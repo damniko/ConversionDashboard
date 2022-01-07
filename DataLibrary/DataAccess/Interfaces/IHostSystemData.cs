@@ -2,7 +2,7 @@
 {
     public interface IHostSystemData
     {
-        bool TryGetUpdatedHostName(DateTime fromDate, out string hostname, string connStrKey);
-        bool TryGetUpdatedMonitorName(DateTime fromDate, out string monitorName, string connStrKey);
+        Task<string?> GetHostNameAsync(DateTime fromDate, string connStrKey);
+        Task<string?> GetMonitorNameAsync(DateTime fromDate, string connStrKey);
     }
 }

@@ -1,5 +1,4 @@
 ﻿using DataLibrary.DataAccess.Interfaces;
-using DataLibrary.Internal;
 using DataLibrary.Models;
 
 namespace DataLibrary.DataAccess
@@ -13,9 +12,9 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<DestTable> GetDestTablesForManager(string manager, string connStrKey)
+        public async Task<List<DestTable>> GetDestTablesForManagerAsync(string manager, string connStrKey)
         {
-            var output = (from d in _db.GetDestTableTbl(connStrKey)
+            var output = (from d in await _db.GetDestTableAsync(connStrKey)
                           where d.MGR == manager
                           select new DestTable
                           {

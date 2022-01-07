@@ -4,7 +4,7 @@ namespace DataLibrary.DataAccess.Interfaces
 {
     public interface IMemoryData
     {
-        List<Reading> GetReadingsSinceDate(DateTime fromDate, string connStrKey);
-        bool TryGetUpdatedTotal(DateTime fromDate, out long total, string connStrKey);
+        Task<List<Reading>> GetReadingsAsync(DateTime fromDate, string connStrKey);
+        Task<long?> GetTotalAsync(DateTime fromDate, string connStrKey);
     }
 }

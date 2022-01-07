@@ -1,5 +1,4 @@
 ﻿using DataLibrary.DataAccess.Interfaces;
-using DataLibrary.Internal;
 using DataLibrary.Models;
 
 namespace DataLibrary.DataAccess
@@ -13,12 +12,11 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<Execution> GetExecutionsSinceDate(DateTime fromDate, string connStrKey)
+        public async Task<List<Execution>> GetSinceAsync(DateTime fromDate, string connStrKey)
         {
-            var contextData = _db.GetLoggingContextTbl(connStrKey).ToList();
-            var executionData = _db.GetExecutionTbl(connStrKey);
+            var executionData = await _db.GetExecutionAsync(connStrKey);
 
-            var output = (from e in executionData
+            var entries = (from e in executionData
                           where e.CREATED > fromDate
                           orderby e.CREATED
                           select new Execution
@@ -28,10 +26,20 @@ namespace DataLibrary.DataAccess
                               StartTime = e.CREATED.GetValueOrDefault(),
                           }).ToList();
 
-            // Try to assign end-times and context ID dictionaries to each execution
-            foreach (var execution in output)
+            var output = await AssignEndTimesAndContextDictionaries(entries, connStrKey);
+            
+            return output;
+        }
+
+        public Task<List<Execution>> GetAllAsync(string connStrKey) 
+            => GetSinceAsync(System.Data.SqlTypes.SqlDateTime.MinValue.Value, connStrKey);
+    
+        private async Task<List<Execution>> AssignEndTimesAndContextDictionaries(List<Execution> entries, string connStrKey)
+        {
+            var contextData = await _db.GetLoggingContextAsync(connStrKey);
+            foreach (var execution in entries)
             {
-                var prev = output.FirstOrDefault(e => e.Id == execution.Id - 1);
+                var prev = entries.FirstOrDefault(e => e.Id == execution.Id - 1);
                 if (prev != null)
                 {
                     prev.EndTime = execution.StartTime;
@@ -42,7 +50,7 @@ namespace DataLibrary.DataAccess
                             .ToDictionary(c => c.CONTEXT_ID, c => c.CONTEXT);
                 execution.ContextDict = dict;
             }
-            return output;
+            return entries;
         }
     }
 }

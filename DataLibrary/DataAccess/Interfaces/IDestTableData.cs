@@ -4,6 +4,6 @@ namespace DataLibrary.DataAccess.Interfaces
 {
     public interface IDestTableData
     {
-        List<DestTable> GetDestTablesForManager(string manager, string connStrKey);
+        Task<List<DestTable>> GetDestTablesForManagerAsync(string manager, string connStrKey);
     }
 }

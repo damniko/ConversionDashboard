@@ -1,5 +1,4 @@
 ﻿using DataLibrary.DataAccess.Interfaces;
-using DataLibrary.Internal;
 using DataLibrary.Models;
 using Microsoft.Extensions.Logging;
 
@@ -8,17 +7,20 @@ namespace DataLibrary.DataAccess
     public class MemoryData : IMemoryData
     {
         private readonly IDataAccess _db;
+        private readonly ILogger<MemoryData> _logger;
 
         public MemoryData(IDataAccess db, ILogger<MemoryData> logger)
         {
             _db = db;
+            _logger = logger;
         }
 
-        public List<Reading> GetReadingsSinceDate(DateTime fromDate, string connStrKey)
+        public async Task<List<Reading>> GetReadingsAsync(DateTime fromDate, string connStrKey)
         {
             var output = new List<Reading>();
-            var allEntries = _db.GetHealthReportTbl(connStrKey)
-                .OrderBy(x => x.LOG_TIME);
+            var allEntries = from e in await _db.GetHealthReportAsync(connStrKey)
+                             orderby e.LOG_TIME
+                             select e;
 
             var memoryEntries = from e in allEntries
                                 where e.LOG_TIME > fromDate
@@ -32,7 +34,7 @@ namespace DataLibrary.DataAccess
                 var totalEntry = allEntries.LastOrDefault(e => e.REPORT_TYPE == "MEMORY_INIT" && e.LOG_TIME < entry.LOG_TIME!.Value);
                 if (totalEntry is null)
                 {
-                    // TODO - Log this
+                    _logger.LogWarning("Could not find a HEALTH_REPORT entry with [REPORT_TYPE]=MEMORY_INIT and [REPORT_KEY]=TOTAL with a [LOG_TIME] earlier than {LogTime}. Will skip memory reading.", entry.LOG_TIME);
                     continue;
                 }
                 var reading = new MemoryReading
@@ -46,24 +48,15 @@ namespace DataLibrary.DataAccess
             return output;
         }
 
-        public bool TryGetUpdatedTotal(DateTime fromDate, out long total, string connStrKey)
+        public async Task<long?> GetTotalAsync(DateTime fromDate, string connStrKey)
         {
-            total = 0;
-            bool wasSuccessful = false;
+            var entry = (from e in await _db.GetHealthReportAsync(connStrKey)
+                         where e.LOG_TIME > fromDate
+                         where e.REPORT_TYPE == "MEMORY_INIT" && e.REPORT_KEY == "TOTAL"
+                         orderby e.LOG_TIME
+                         select e).LastOrDefault();
 
-            var entry = _db.GetHealthReportTbl(connStrKey)
-                .Where(x => x.LOG_TIME > fromDate)
-                .Where(x => x.REPORT_TYPE == "MEMORY_INIT" && x.REPORT_KEY == "TOTAL")
-                .OrderBy(x => x.LOG_TIME)
-                .LastOrDefault();
-
-            if (entry?.REPORT_NUMERIC_VALUE != null)
-            {
-                total = entry.REPORT_NUMERIC_VALUE.Value;
-                wasSuccessful = true;
-            }
-
-            return wasSuccessful;
+            return entry?.REPORT_NUMERIC_VALUE;
         }
     }
 }

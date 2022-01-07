@@ -1,7 +1,6 @@
-﻿using DataLibrary.Internal;
-using DataLibrary.Models;
+﻿using DataLibrary.Models;
 using DataLibrary.DataAccess.Interfaces;
-using DataLibrary.Internal.EFModels;
+using DataLibrary.Models.Database;
 
 namespace DataLibrary.DataAccess
 {
@@ -14,10 +13,10 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<LogEntry> GetLogEntriesSinceDate(DateTime fromDate, string connStrKey)
+        public async Task<List<LogEntry>> GetSinceAsync(DateTime fromDate, string connStrKey)
         {
-            var contextData = _db.GetLoggingContextTbl(connStrKey);
-            var loggingData = _db.GetLoggingTbl(connStrKey);
+            var contextData = await _db.GetLoggingContextAsync(connStrKey);
+            var loggingData = await _db.GetLoggingAsync(connStrKey);
 
             var output = (from m in loggingData
                           where m.CREATED > fromDate

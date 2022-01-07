@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using DataLibrary.DataAccess;
-using DataLibrary.Internal;
-using DataLibrary.Internal.EFModels;
+using DataLibrary.DataAccess.Interfaces;
+using DataLibrary.Models.Database;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -21,7 +21,7 @@ namespace DataLibrary.Tests
         }
 
         [Fact]
-        public void TryGetUpdatedHostName_NoHostNameEntryExists_ReturnsFalse()
+        public async void GetHostNameAsync_NoHostNameEntryExists_ReturnsNull()
         {
             // Arrange
             var irrelevantEntry = new HEALTH_REPORT
@@ -31,18 +31,18 @@ namespace DataLibrary.Tests
                 REPORT_KEY = _sut._monitorNameKey,
                 REPORT_STRING_VALUE = "Test Monitor Name"
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { irrelevantEntry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { irrelevantEntry });
 
             // Act
-            var result = _sut.TryGetUpdatedHostName(DateTime.MinValue, out _, "");
+            var result = await _sut.GetHostNameAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeFalse("because there is no entry with a report key {0}", nameof(_sut._hostNameKey));
+            result.Should().BeNull("because there is no entry with report key {0}", nameof(_sut._hostNameKey));
         }
 
         [Fact]
-        public void TryGetUpdatedHostName_HostNameEntryExists_ReturnsTrueAndString()
+        public async void GetHostNameAsync_HostNameEntryExists_ReturnsString()
         {
             // Arrange
             string entryValue = "Test Host Name";
@@ -53,19 +53,19 @@ namespace DataLibrary.Tests
                 REPORT_KEY = _sut._hostNameKey,
                 REPORT_STRING_VALUE = entryValue
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { entry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var result = _sut.TryGetUpdatedHostName(DateTime.MinValue, out string hostName, "");
+            var result = await _sut.GetHostNameAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because there is an entry with a report key {0}", nameof(_sut._hostNameKey));
-            hostName.Should().Be(entryValue);
+            result.Should().NotBeNull("because there is an entry with report key {0}", nameof(_sut._hostNameKey))
+                .And.Be(entryValue);
         }
 
         [Fact]
-        public void TryGetUpdatedMonitorName_NoMonitorNameEntryExists_ReturnsFalse()
+        public async void GetMonitorNameAsync_NoMonitorNameEntryExists_ReturnsNull()
         {
             // Arrange
             var irrelevantEntry = new HEALTH_REPORT
@@ -75,18 +75,18 @@ namespace DataLibrary.Tests
                 REPORT_KEY = _sut._hostNameKey,
                 REPORT_STRING_VALUE = "Test Host Name"
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { irrelevantEntry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { irrelevantEntry });
 
             // Act
-            var result = _sut.TryGetUpdatedMonitorName(DateTime.MinValue, out _, "");
+            var result = await _sut.GetMonitorNameAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeFalse("because there is no entry with a report key {0}", nameof(_sut._monitorNameKey));
+            result.Should().BeNull("because there is no entry with a report key {0}", nameof(_sut._monitorNameKey));
         }
 
         [Fact]
-        public void TryGetUpdatedMonitorName_MonitorNameEntryExists_ReturnsTrueAndString()
+        public async void GetMonitorNameAsync_MonitorNameEntryExists_ReturnsString()
         {
             // Arrange
             string entryValue = "Test Monitor Name";
@@ -97,15 +97,15 @@ namespace DataLibrary.Tests
                 REPORT_KEY = _sut._monitorNameKey,
                 REPORT_STRING_VALUE = entryValue
             };
-            _dbMock.Setup(x => x.GetHealthReportTbl(It.IsAny<string>()))
-                .Returns(new List<HEALTH_REPORT> { entry });
+            _dbMock.Setup(x => x.GetHealthReportAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<HEALTH_REPORT> { entry });
 
             // Act
-            var result = _sut.TryGetUpdatedMonitorName(DateTime.MinValue, out string monitorName, "");
+            var result = await _sut.GetMonitorNameAsync(DateTime.MinValue, "");
 
             // Assert
-            result.Should().BeTrue("because there is an entry with a report key {0}", nameof(_sut._monitorNameKey));
-            monitorName.Should().Be(entryValue);
+            result.Should().NotBeNull("because there is an entry with report key {0}", nameof(_sut._monitorNameKey))
+                .And.Be(entryValue);
         }
     }
 }

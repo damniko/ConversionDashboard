@@ -1,13 +1,13 @@
 ﻿using DataLibrary.Models;
 
-namespace DataLibrary.DataAccess.Interfaces
+namespace DataLibrary.DataAccess
 {
     public interface ICpuData
     {
-        List<Reading> GetReadingsSince(DateTime fromDate, string connStrKey);
-        bool TryGetUpdatedLogicalCores(DateTime fromDate, out long logicalCores, string connStrKey);
-        bool TryGetUpdatedMaxFrequency(DateTime fromDate, out long maxFrequency, string connStrKey);
-        bool TryGetUpdatedName(DateTime fromDate, out string name, string connStrKey);
-        bool TryGetUpdatedPhysicalCores(DateTime fromDate, out long physicalCores, string connStrKey);
+        Task<List<Reading>> GetReadingsAsync(DateTime fromDate, string connStrKey);
+        Task<long?> GetLogicalCoresAsync(DateTime fromDate, string connStrKey);
+        Task<long?> GetMaxFrequencyAsync(DateTime fromDate, string connStrKey);
+        Task<string?> GetNameAsync(DateTime fromDate, string connStrKey);
+        Task<long?> GetPhysicalCoresAsync(DateTime fromDate, string connStrKey);
     }
 }

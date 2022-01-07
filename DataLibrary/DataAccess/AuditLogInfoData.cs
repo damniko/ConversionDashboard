@@ -1,5 +1,4 @@
 ﻿using DataLibrary.DataAccess.Interfaces;
-using DataLibrary.Internal;
 using DataLibrary.Models;
 
 namespace DataLibrary.DataAccess
@@ -13,10 +12,10 @@ namespace DataLibrary.DataAccess
             _db = db;
         }
 
-        public List<AuditLogInfo> GetAuditLogInfoSinceDate(DateTime fromDate, string connStrKey)
+        public async Task<List<AuditLogInfo>> GetAuditLogInfoAsync(DateTime fromDate, string connStrKey)
         {
-            var logInfoData = _db.GetAuditLogInfoTbl(connStrKey);
-            var typesData = _db.GetAuditLogInfoTypesTbl(connStrKey);
+            var logInfoData = await _db.GetAuditLogInfoAsync(connStrKey);
+            var typesData = await _db.GetAuditLogInfoTypesAsync(connStrKey);
 
             var output = (from entry in logInfoData
                           join type in typesData
