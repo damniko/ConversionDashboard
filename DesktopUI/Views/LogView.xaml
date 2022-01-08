@@ -9,7 +9,7 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:behaviors="clr-namespace:DesktopUI.Views.Behaviors"
              mc:Ignorable="d" 
-             d:DesignHeight="225" d:DesignWidth="400">
+             d:DesignHeight="350" d:DesignWidth="600">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>

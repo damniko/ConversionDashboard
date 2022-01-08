@@ -4,134 +4,133 @@ using DesktopUI.Models;
 using FluentAssertions;
 using Xunit;
 
-namespace DesktopUI.Tests
+namespace DesktopUI.Tests;
+
+public class ExecutionAssociationHelperTests
 {
-    public class ExecutionAssociationHelperTests
+    private readonly ExecutionAssociationHelper _sut;
+
+    public ExecutionAssociationHelperTests()
     {
-        private readonly ExecutionAssociationHelper _sut;
+        _sut = new ExecutionAssociationHelper();
+    }
 
-        public ExecutionAssociationHelperTests()
+    [Fact]
+    public void IsInExecution_NoEndTimeAndReconciliationIsAfterStartTime_ReturnsTrue()
+    {
+        // Arrange
+        var execution = new ExecutionDto
         {
-            _sut = new ExecutionAssociationHelper();
-        }
-
-        [Fact]
-        public void IsInExecution_NoEndTimeAndReconciliationIsAfterStartTime_ReturnsTrue()
+            StartTime = DateTime.Parse("2010/01/01 10:00:00")
+        };
+        var reconciliation = new ReconciliationDto
         {
-            // Arrange
-            var execution = new ExecutionDto
-            {
-                StartTime = DateTime.Parse("2010/01/01 10:00:00")
-            };
-            var reconciliation = new ReconciliationDto
-            {
-                Date = DateTime.Parse("2010/01/01 10:30:00")
-            };
+            Date = DateTime.Parse("2010/01/01 10:30:00")
+        };
 
-            // Act
-            bool result = _sut.IsInExecution(reconciliation, execution);
+        // Act
+        bool result = _sut.IsInExecution(reconciliation, execution);
 
-            // Assert
-            result.Should().BeTrue("because the execution only has a start time which is earlier than the date of the given reconciliation");
-        }
+        // Assert
+        result.Should().BeTrue("because the execution only has a start time which is earlier than the date of the given reconciliation");
+    }
 
-        [Fact]
-        public void IsInExecution_NoEndTimeAndReconciliationIsBeforeStartTime_ReturnsFalse()
+    [Fact]
+    public void IsInExecution_NoEndTimeAndReconciliationIsBeforeStartTime_ReturnsFalse()
+    {
+        // Arrange
+        var execution = new ExecutionDto
         {
-            // Arrange
-            var execution = new ExecutionDto
-            {
-                StartTime = DateTime.Parse("2010/01/01 10:00:00")
-            };
-            var reconciliation = new ReconciliationDto
-            {
-                Date = DateTime.Parse("2010/01/01 09:00:00")
-            };
-
-            // Act
-            bool result = _sut.IsInExecution(reconciliation, execution);
-
-            // Assert
-            result.Should().BeFalse("because the execution only has a start time which is later than the date of the given reconciliation");
-        }
-
-        [Fact]
-        public void IsInExecution_ReconciliationIsBeforeExecution_ReturnsFalse()
+            StartTime = DateTime.Parse("2010/01/01 10:00:00")
+        };
+        var reconciliation = new ReconciliationDto
         {
-            // Arrange
-            var execution = new ExecutionDto
-            {
-                StartTime = DateTime.Parse("2010/01/01 10:00:00"),
-                EndTime = DateTime.Parse("2010/01/01 11:00:00")
-            };
-            var reconciliation = new ReconciliationDto
-            {
-                Date = DateTime.Parse("2010/01/01 09:00:00")
-            };
+            Date = DateTime.Parse("2010/01/01 09:00:00")
+        };
 
-            // Act
-            bool result = _sut.IsInExecution(reconciliation, execution);
+        // Act
+        bool result = _sut.IsInExecution(reconciliation, execution);
 
-            // Assert
-            result.Should().BeFalse("because the date of the given reconciliation is before the execution");
-        }
+        // Assert
+        result.Should().BeFalse("because the execution only has a start time which is later than the date of the given reconciliation");
+    }
 
-        [Fact]
-        public void IsInExecution_ReconciliationIsWithinExecution_ReturnsTrue()
+    [Fact]
+    public void IsInExecution_ReconciliationIsBeforeExecution_ReturnsFalse()
+    {
+        // Arrange
+        var execution = new ExecutionDto
         {
-            // Arrange
-            var execution = new ExecutionDto
-            {
-                StartTime = DateTime.Parse("2010/01/01 10:00:00"),
-                EndTime = DateTime.Parse("2010/01/01 11:00:00")
-            };
-            var reconciliation = new ReconciliationDto
-            {
-                Date = DateTime.Parse("2010/01/01 10:30:00")
-            };
-
-            // Act
-            bool result = _sut.IsInExecution(reconciliation, execution);
-
-            // Assert
-            result.Should().BeTrue("because the date of the given reconciliation is within the execution");
-        }
-
-        [Fact]
-        public void IsInExecution_ReconciliationIsAfterExecution_ReturnsFalse()
+            StartTime = DateTime.Parse("2010/01/01 10:00:00"),
+            EndTime = DateTime.Parse("2010/01/01 11:00:00")
+        };
+        var reconciliation = new ReconciliationDto
         {
-            // Arrange
-            var execution = new ExecutionDto
-            {
-                StartTime = DateTime.Parse("2010/01/01 10:00:00"),
-                EndTime = DateTime.Parse("2010/01/01 11:00:00")
-            };
-            var reconciliation = new ReconciliationDto
-            {
-                Date = DateTime.Parse("2010/01/01 12:00:00")
-            };
+            Date = DateTime.Parse("2010/01/01 09:00:00")
+        };
 
-            // Act
-            bool result = _sut.IsInExecution(reconciliation, execution);
+        // Act
+        bool result = _sut.IsInExecution(reconciliation, execution);
 
-            // Assert
-            result.Should().BeFalse("because the date of the given reconciliation is after the execution");
-        }
+        // Assert
+        result.Should().BeFalse("because the date of the given reconciliation is before the execution");
+    }
 
-        [Fact]
-        public void IsInExecution_ExecutionIsNull_ReturnsTrue()
+    [Fact]
+    public void IsInExecution_ReconciliationIsWithinExecution_ReturnsTrue()
+    {
+        // Arrange
+        var execution = new ExecutionDto
         {
-            // Arrange
-            var reconciliation = new ReconciliationDto
-            {
-                Date = DateTime.Parse("2010/01/01 10:00:00")
-            };
+            StartTime = DateTime.Parse("2010/01/01 10:00:00"),
+            EndTime = DateTime.Parse("2010/01/01 11:00:00")
+        };
+        var reconciliation = new ReconciliationDto
+        {
+            Date = DateTime.Parse("2010/01/01 10:30:00")
+        };
 
-            // Act
-            bool result = _sut.IsInExecution(reconciliation, null);
+        // Act
+        bool result = _sut.IsInExecution(reconciliation, execution);
 
-            // Assert
-            result.Should().BeTrue("because the given execution is null");
-        }
+        // Assert
+        result.Should().BeTrue("because the date of the given reconciliation is within the execution");
+    }
+
+    [Fact]
+    public void IsInExecution_ReconciliationIsAfterExecution_ReturnsFalse()
+    {
+        // Arrange
+        var execution = new ExecutionDto
+        {
+            StartTime = DateTime.Parse("2010/01/01 10:00:00"),
+            EndTime = DateTime.Parse("2010/01/01 11:00:00")
+        };
+        var reconciliation = new ReconciliationDto
+        {
+            Date = DateTime.Parse("2010/01/01 12:00:00")
+        };
+
+        // Act
+        bool result = _sut.IsInExecution(reconciliation, execution);
+
+        // Assert
+        result.Should().BeFalse("because the date of the given reconciliation is after the execution");
+    }
+
+    [Fact]
+    public void IsInExecution_ExecutionIsNull_ReturnsTrue()
+    {
+        // Arrange
+        var reconciliation = new ReconciliationDto
+        {
+            Date = DateTime.Parse("2010/01/01 10:00:00")
+        };
+
+        // Act
+        bool result = _sut.IsInExecution(reconciliation, null);
+
+        // Assert
+        result.Should().BeTrue("because the given execution is null");
     }
 }

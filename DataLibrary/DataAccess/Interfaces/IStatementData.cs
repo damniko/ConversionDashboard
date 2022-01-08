@@ -1,9 +1,8 @@
 ﻿using DataLibrary.Models;
 
-namespace DataLibrary.DataAccess.Interfaces
+namespace DataLibrary.DataAccess.Interfaces;
+
+public interface IStatementData
 {
-    public interface IStatementData
-    {
-        Task<List<StatementTable>> GetAsync(DateTime fromDate, string connStrKey);
-    }
+    Task<List<StatementTable>> GetAsync(DateTime fromDate, string connStrKey);
 }

@@ -1,9 +1,8 @@
-﻿namespace DataLibrary.Models.Database
+﻿namespace DataLibrary.Models.Database;
+
+public partial class EXECUTION
 {
-    public partial class EXECUTION
-    {
-        public long? EXECUTION_ID { get; set; }
-        public string? EXECUTION_UUID { get; set; }
-        public DateTime? CREATED { get; set; }
-    }
+    public long? EXECUTION_ID { get; set; }
+    public string? EXECUTION_UUID { get; set; }
+    public DateTime? CREATED { get; set; }
 }

@@ -2,13 +2,12 @@
 using DataLibrary.Models;
 using DesktopUI.Models;
 
-namespace DesktopUI.Controllers.Profiles
+namespace DesktopUI.Controllers.Profiles;
+
+internal class LogProfile : Profile
 {
-    internal class LogProfile : Profile
+    public LogProfile()
     {
-        public LogProfile()
-        {
-            CreateMap<LogEntry, LogEntryDto>();
-        }
+        CreateMap<LogEntry, LogEntryDto>();
     }
 }

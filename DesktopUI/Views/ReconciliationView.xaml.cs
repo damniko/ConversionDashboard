@@ -2,17 +2,16 @@
 using DesktopUI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DesktopUI.Views
+namespace DesktopUI.Views;
+
+/// <summary>
+/// Interaction logic for ReconciliationReportView.xaml
+/// </summary>
+public partial class ReconciliationView : UserControl
 {
-    /// <summary>
-    /// Interaction logic for ReconciliationReportView.xaml
-    /// </summary>
-    public partial class ReconciliationView : UserControl
+    public ReconciliationView()
     {
-        public ReconciliationView()
-        {
-            InitializeComponent();
-            DataContext = App.Current.Services.GetService<ReconciliationViewModel>();
-        }
+        InitializeComponent();
+        DataContext = App.Current.Services.GetService<ReconciliationViewModel>();
     }
 }

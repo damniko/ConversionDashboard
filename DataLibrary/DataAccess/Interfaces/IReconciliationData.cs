@@ -1,9 +1,8 @@
 ﻿using DataLibrary.Models;
 
-namespace DataLibrary.DataAccess.Interfaces
+namespace DataLibrary.DataAccess.Interfaces;
+
+public interface IReconciliationData
 {
-    public interface IReconciliationData
-    {
-        Task<List<Reconciliation>> GetAsync(DateTime fromDate, string connStrKey);
-    }
+    Task<List<Reconciliation>> GetAsync(DateTime fromDate, string connStrKey);
 }

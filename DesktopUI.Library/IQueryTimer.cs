@@ -1,15 +1,14 @@
 ﻿using System;
 
-namespace DesktopUI.Library
+namespace DesktopUI.Library;
+
+public delegate void QueryTimerElapsed(DateTime date);
+
+public interface IQueryTimer
 {
-    public delegate void QueryTimerElapsed(DateTime date);
+    event QueryTimerElapsed? Elapsed;
 
-    public interface IQueryTimer
-    {
-        event QueryTimerElapsed? Elapsed;
-
-        IQueryTimer ChangeInterval(int interval);
-        IQueryTimer Start(int interval);
-        void Stop();
-    }
+    IQueryTimer ChangeInterval(int interval);
+    IQueryTimer Start(int interval);
+    void Stop();
 }

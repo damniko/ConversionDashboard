@@ -1,0 +1,155 @@
+﻿<UserControl x:Class="DesktopUI.Views.ManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:local="clr-namespace:DesktopUI.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="350" d:DesignWidth="600">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="22"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal"
+                    Grid.Column="1">
+            <Button Content="Refresh"
+                    Command="{Binding UpdateDataCmd}"/>
+            <Button Content="Pop ud"/>
+        </StackPanel>
+        
+        <TabControl Grid.RowSpan="2"
+                    Grid.ColumnSpan="2">
+            
+            <!-- Tab 1: Manager Overview -->
+            <TabItem Header="Manager Overview"
+                     IsSelected="True">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="22"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="22"/>
+                    </Grid.RowDefinitions>
+                    <GridSplitter Grid.Column="1"
+                                  Grid.Row="1"
+                                  Width="4"
+                                  Height="100"
+                                  HorizontalAlignment="Center"/>
+
+                    <!-- Header -->
+                    <StackPanel Orientation="Horizontal"
+                                Grid.Column="2">
+                        <TextBlock Text="Details"/>
+                    </StackPanel>
+
+                    <!-- Body: Managers -->
+                    <Grid Grid.Row="0"
+                          Grid.Column="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="22"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Row="0"
+                                 Grid.Column="0"
+                                 Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"/>
+                        
+                        <ComboBox SelectedItem="{Binding SelectedExecution}"
+                                  ItemsSource="{Binding Executions}"
+                                  Grid.Column="1">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Id, StringFormat='Execution {0}'}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <Button Content="X"
+                                Grid.Column="2"
+                                Command="{Binding ClearSelectedExecutionCmd}"/>
+                    </Grid>
+
+                    <ListView Grid.Row="1"
+                              ItemsSource="{Binding View}"
+                              d:ItemsSource="{d:SampleData}">
+                        <ListView.View>
+                            <GridView>
+                                <GridView.Columns>
+                                    <GridViewColumn Header="Name"
+                                                    DisplayMemberBinding="{Binding NameShort}"/>
+                                    <GridViewColumn Header="Start"
+                                                    DisplayMemberBinding="{Binding StartTime, StringFormat=HH:mm:ss, TargetNullValue='N/A'}"/>
+                                    <GridViewColumn Header="End"
+                                                    DisplayMemberBinding="{Binding EndTime, StringFormat=HH:mm:ss, TargetNullValue='N/A'}"/>
+                                    <GridViewColumn Header="Runtime"
+                                                    DisplayMemberBinding="{Binding Runtime, StringFormat=hh\\:mm\\:ss, TargetNullValue='N/A'}"/>
+                                    <GridViewColumn Header="Read"
+                                                    DisplayMemberBinding="{Binding RowsRead, TargetNullValue='N/A'}"/>
+                                    <GridViewColumn Header="Written"
+                                                    DisplayMemberBinding="{Binding RowsWritten, TargetNullValue='N/A'}"/>
+                                </GridView.Columns>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <!--<DataGrid Grid.Row="2"
+                              HorizontalAlignment="Left"
+                              Width="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualWidth}"
+                              HeadersVisibility="Column"
+                              AutoGenerateColumns="False"
+                              ItemsSource="{Binding View}"
+                              d:ItemsSource="{d:SampleData}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name"
+                                                Binding="{Binding Name}"/>
+                            <DataGridTextColumn Header="Started"
+                                                Binding="{Binding StartTime}"/>
+                            <DataGridTextColumn Header="Finished"
+                                                Binding="{Binding EndTime}"/>
+                            <DataGridTextColumn Header="Runtime"
+                                                Binding="{Binding Runtime}"/>
+                            <DataGridTextColumn Header="Read"
+                                                Binding="{Binding RowsRead}"/>
+                            <DataGridTextColumn Header="Written"
+                                                Binding="{Binding RowsWritten}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>-->
+
+                    <!-- Body: Details -->
+                    <Grid Grid.Row="1"
+                          Grid.Column="2">
+                    </Grid>
+                    
+                    <!-- Footer -->
+                    <StackPanel Orientation="Horizontal"
+                                Grid.Row="2">
+                        <TextBlock Text="Current: "/>
+                        <TextBlock Text="{Binding CurrentCount, TargetNullValue='N/A'}" d:Text="0"/>
+                        <TextBlock Text="/"/>
+                        <TextBlock Text="{Binding ExpectedCount, TargetNullValue='N/A'}" d:Text="0"/>
+                        <TextBlock Text=" (expected)"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            
+            <!-- Tab 2: Comparisons -->
+            <TabItem Header="Comparisons"
+                     IsEnabled="False">
+            </TabItem>
+            
+            <!-- Tab 3: Data -->
+            <TabItem Header="Raw Data"
+                     IsEnabled="False">
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

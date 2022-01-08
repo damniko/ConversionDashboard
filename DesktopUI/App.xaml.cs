@@ -10,90 +10,92 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace DesktopUI
+namespace DesktopUI;
+
+/// <summary>
+/// Interaction logic for App.xaml
+/// </summary>
+public partial class App : Application
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
+    public App()
     {
-        public App()
-        {
-            Configuration = GetConfiguration();
-            Services = ConfigureServices();
-        }
+        Configuration = GetConfiguration();
+        Services = ConfigureServices();
+    }
 
-        public IConfiguration Configuration { get; }
+    public IConfiguration Configuration { get; }
 
-        public IConfiguration GetConfiguration()
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile("appsettings.json");
+    public IConfiguration GetConfiguration()
+    {
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(Environment.CurrentDirectory)
+            .AddJsonFile("appsettings.json");
 #if DEBUG
-            builder.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+        builder.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
 #else
             builder.AddJsonFile("appsettings.Production.json", optional: true, reloadOnChange: true);
 #endif
-            return builder.Build();
-        }
+        return builder.Build();
+    }
 
-        /// <summary>
-        /// Gets the current <see cref="App"/> instance in use.
-        /// </summary>
-        public new static App Current => (App)Application.Current;
+    /// <summary>
+    /// Gets the current <see cref="App"/> instance in use.
+    /// </summary>
+    public new static App Current => (App)Application.Current;
 
-        /// <summary>
-        /// Gets the <see cref="IServiceProvider"/> instance to resolve application services.
-        /// </summary>
-        public IServiceProvider Services { get; }
+    /// <summary>
+    /// Gets the <see cref="IServiceProvider"/> instance to resolve application services.
+    /// </summary>
+    public IServiceProvider Services { get; }
 
-        /// <summary>
-        /// Configures the services for the application.
-        /// </summary>
-        private IServiceProvider ConfigureServices()
+    /// <summary>
+    /// Configures the services for the application.
+    /// </summary>
+    private IServiceProvider ConfigureServices()
+    {
+        var services = new ServiceCollection();
+
+        services.AddAutoMapper(typeof(App));
+
+        services.AddLogging(builder =>
         {
-            var services = new ServiceCollection();
+            builder.AddConfiguration(Configuration.GetSection("Debug"))
+                .AddDebug();   
+        });
 
-            services.AddAutoMapper(typeof(App));
+        // Singletons
+        services
+            .AddSingleton(provider => GetConfiguration())
+            .AddSingleton<QueryTimerService>()
+            .AddSingleton<ExecutionAssociationHelper>();
 
-            services.AddLogging(builder =>
-            {
-                builder.AddConfiguration(Configuration.GetSection("Debug"))
-                    .AddDebug();   
-            });
+        // Data Access
+        services
+            .AddTransient<IDataAccess, EfDataAccess>()
+            .AddTransient<ILogData, LogData>()
+            .AddTransient<IExecutionData, ExecutionData>()
+            .AddTransient<IManagerData, ManagerData>()
+            .AddTransient<IReconciliationData, ReconciliationData>();
 
-            // Singletons
-            services
-                .AddSingleton(provider => GetConfiguration())
-                .AddSingleton<QueryTimerService>()
-                .AddSingleton<ExecutionAssociationHelper>();
+        // ViewModels
+        services
+            .AddTransient<ReconciliationViewModel>()
+            .AddTransient<LogViewModel>()
+            .AddTransient<MainViewModel>()
+            .AddTransient<ManagerViewModel>()
+            .AddTransient<ControlBarViewModel>();
 
-            // Data Access
-            services
-                .AddTransient<IDataAccess, EfDataAccess>()
-                .AddTransient<ILogData, LogData>()
-                .AddTransient<IExecutionData, ExecutionData>()
-                .AddTransient<IReconciliationData, ReconciliationData>();
+        // Controllers
+        services
+            .AddTransient<LogController>()
+            .AddTransient<ExecutionController>()
+            .AddTransient<ManagerController>()
+            .AddTransient<ReconciliationController>();
 
-            // ViewModels
-            services
-                .AddTransient<ReconciliationViewModel>()
-                .AddTransient<LogViewModel>()
-                .AddTransient<MainViewModel>()
-                .AddTransient<ControlBarViewModel>();
-
-            // Controllers
-            services
-                .AddTransient<LogController>()
-                .AddTransient<ExecutionController>()
-                .AddTransient<ReconciliationController>();
-
-            // Others
-            services
-                .AddTransient<IQueryTimer, QueryTimer>();
+        // Others
+        services
+            .AddTransient<IQueryTimer, QueryTimer>();
             
-            return services.BuildServiceProvider();
-        }
+        return services.BuildServiceProvider();
     }
 }

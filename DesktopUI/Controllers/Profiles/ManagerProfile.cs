@@ -9,10 +9,10 @@ using DesktopUI.Models;
 
 namespace DesktopUI.Controllers.Profiles;
 
-public class ReconciliationProfile : Profile
+public class ManagerProfile : Profile
 {
-    public ReconciliationProfile()
+    public ManagerProfile()
     {
-        CreateMap<Reconciliation, ReconciliationDto>();
+        CreateMap<Manager, ManagerDto>();
     }
 }

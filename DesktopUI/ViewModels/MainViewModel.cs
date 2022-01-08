@@ -1,7 +1,6 @@
-﻿namespace DesktopUI.ViewModels
-{
-    public class MainViewModel
-    {
+﻿namespace DesktopUI.ViewModels;
 
-    }
+public class MainViewModel
+{
+
 }

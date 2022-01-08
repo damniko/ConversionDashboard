@@ -7,13 +7,12 @@ using AutoMapper;
 using DataLibrary.Models;
 using DesktopUI.Models;
 
-namespace DesktopUI.Controllers.Profiles
+namespace DesktopUI.Controllers.Profiles;
+
+public class ExecutionProfile : Profile
 {
-    public class ExecutionProfile : Profile
+    public ExecutionProfile()
     {
-        public ExecutionProfile()
-        {
-            CreateMap<Execution, ExecutionDto>();
-        }
+        CreateMap<Execution, ExecutionDto>();
     }
 }

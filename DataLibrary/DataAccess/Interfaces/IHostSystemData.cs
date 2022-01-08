@@ -1,8 +1,7 @@
-﻿namespace DataLibrary.DataAccess.Interfaces
+﻿namespace DataLibrary.DataAccess.Interfaces;
+
+public interface IHostSystemData
 {
-    public interface IHostSystemData
-    {
-        Task<string?> GetHostNameAsync(DateTime fromDate, string connStrKey);
-        Task<string?> GetMonitorNameAsync(DateTime fromDate, string connStrKey);
-    }
+    Task<string?> GetHostNameAsync(DateTime fromDate, string connStrKey);
+    Task<string?> GetMonitorNameAsync(DateTime fromDate, string connStrKey);
 }

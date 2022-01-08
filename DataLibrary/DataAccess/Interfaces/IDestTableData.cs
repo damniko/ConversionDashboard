@@ -1,9 +1,8 @@
 ﻿using DataLibrary.Models;
 
-namespace DataLibrary.DataAccess.Interfaces
+namespace DataLibrary.DataAccess.Interfaces;
+
+public interface IDestTableData
 {
-    public interface IDestTableData
-    {
-        Task<List<DestTable>> GetDestTablesForManagerAsync(string manager, string connStrKey);
-    }
+    Task<List<DestTable>> GetDestTablesForManagerAsync(string manager, string connStrKey);
 }

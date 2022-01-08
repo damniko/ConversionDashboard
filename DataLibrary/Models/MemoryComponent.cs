@@ -1,8 +1,7 @@
-﻿namespace DataLibrary.Models
+﻿namespace DataLibrary.Models;
+
+public class MemoryComponent
 {
-    public class MemoryComponent
-    {
-        public long? Total { get; set; }
-        public List<MemoryReading> Readings { get; set; } = new();
-    }
+    public long? Total { get; set; }
+    public List<MemoryReading> Readings { get; set; } = new();
 }

@@ -4,49 +4,48 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 
-namespace DesktopUI.ViewModels
+namespace DesktopUI.ViewModels;
+
+public class ControlBarViewModel : ObservableObject
 {
-    public class ControlBarViewModel : ObservableObject
+    private readonly QueryTimerService _timerService;
+    private readonly ILogger<ControlBarViewModel> _logger;
+    private bool _isMonitoring;
+
+    public ControlBarViewModel(QueryTimerService timerService, ILogger<ControlBarViewModel> logger)
     {
-        private readonly QueryTimerService _timerService;
-        private readonly ILogger<ControlBarViewModel> _logger;
-        private bool _isMonitoring;
+        _timerService = timerService;
+        _logger = logger;
+    }
 
-        public ControlBarViewModel(QueryTimerService timerService, ILogger<ControlBarViewModel> logger)
+    public bool IsMonitoring
+    {
+        get => _isMonitoring;
+        set
         {
-            _timerService = timerService;
-            _logger = logger;
+            SetProperty(ref _isMonitoring, value);
+            OnPropertyChanged(nameof(StartCommand));
+            OnPropertyChanged(nameof(StopCommand));
         }
+    }
 
-        public bool IsMonitoring
-        {
-            get => _isMonitoring;
-            set
-            {
-                SetProperty(ref _isMonitoring, value);
-                OnPropertyChanged(nameof(StartCommand));
-                OnPropertyChanged(nameof(StopCommand));
-            }
-        }
+    public ICommand StartCommand 
+        => new RelayCommand(StartMonitoring, () => IsMonitoring is false);
 
-        public ICommand StartCommand 
-            => new RelayCommand(StartMonitoring, () => IsMonitoring is false);
+    public ICommand StopCommand
+        => new RelayCommand(StopMonitoring, () => IsMonitoring is true);
 
-        public ICommand StopCommand
-            => new RelayCommand(StopMonitoring, () => IsMonitoring is true);
+    private void StartMonitoring()
+    {
+        _logger.LogInformation("Starting all timers");
+        _timerService.StartAll();
+        IsMonitoring = true;
+    }
 
-        private void StartMonitoring()
-        {
-            _logger.LogInformation("Starting all timers");
-            _timerService.StartAll();
-            IsMonitoring = true;
-        }
-
-        private void StopMonitoring()
-        {
-            _logger.LogInformation("Stopping all timers");
-            _timerService.StopAll();
-            IsMonitoring = false;
-        }
+    private void StopMonitoring()
+    {
+        _logger.LogInformation("Stopping all timers");
+        _timerService.StopAll();
+        IsMonitoring = false;
     }
 }

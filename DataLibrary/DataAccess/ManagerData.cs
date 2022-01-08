@@ -3,111 +3,112 @@ using DataLibrary.DataAccess.Interfaces;
 using DataLibrary.Models;
 using DataLibrary.Models.Database;
 
-namespace DataLibrary.DataAccess
+namespace DataLibrary.DataAccess;
+
+public class ManagerData : IManagerData
 {
-    public class ManagerData : IManagerData
+    private readonly IDataAccess _db;
+
+    public ManagerData(IDataAccess db)
     {
-        private readonly IDataAccess _db;
+        _db = db;
+    }
 
-        public ManagerData(IDataAccess db)
+    public async Task<IEnumerable<Manager>> GetSinceAsync(DateTime fromDate, string connStrKey)
+    {
+        var allEngineProperties = await _db.GetEnginePropertiesAsync(connStrKey);
+
+        var engineProperties = (from e in allEngineProperties
+                where e.TIMESTAMP.HasValue && e.TIMESTAMP.Value > fromDate
+                orderby e.TIMESTAMP
+                select e)
+            .ToList();
+
+        var managerNames = allEngineProperties
+            .Where(e => e.KEY == "START_TIME")
+            .Select(e => e.MANAGER!)
+            .ToList();
+
+        var output = GetManagers(managerNames, engineProperties);
+
+        return output;
+    }
+
+    private static IEnumerable<Manager> GetManagers(List<string> names, ICollection<ENGINE_PROPERTY> engineProperties)
+    {
+        List<Manager> output = new();
+
+        foreach (string name in names)
         {
-            _db = db;
-        }
+            Manager manager = new() { Name = name };
 
-        public async Task<IEnumerable<Manager>> GetSinceAsync(DateTime fromDate, string connStrKey)
-        {
-            var engineProperties = (from e in await _db.GetEnginePropertiesAsync(connStrKey)
-                                    where e.TIMESTAMP.HasValue && e.TIMESTAMP.Value > fromDate
-                                    orderby e.TIMESTAMP
-                                    select e)
-                                    .ToList();
-
-            var managerNames = engineProperties
-                .Where(e => e.KEY == "START_TIME")
-                .Select(e => e.MANAGER!)
+            var properties = engineProperties
+                .Where(e => e.MANAGER == name)
                 .ToList();
 
-            var output = GetManagers(managerNames, engineProperties);
-
-            return output;
-        }
-
-        private static IEnumerable<Manager> GetManagers(List<string> names, ICollection<ENGINE_PROPERTY> engineProperties)
-        {
-            List<Manager> output = new();
-
-            foreach (string name in names)
+            foreach (var entry in properties)
             {
-                Manager manager = new() { Name = name };
-
-                var properties = engineProperties
-                    .Where(e => e.MANAGER == name)
-                    .ToList();
-
-                foreach (var entry in properties)
+                // Properties
+                if (entry.KEY == "START_TIME")
                 {
-                    // Properties
-                    if (entry.KEY == "START_TIME")
+                    // If START_TIME is already set, the rest of the entries are for other executions
+                    if (manager.StartTime.HasValue)
                     {
-                        // If START_TIME is already set, the rest of the entries are for other executions
-                        if (manager.StartTime.HasValue)
-                        {
-                            break;
-                        }
-                        manager.StartTime = TryGetDateTime(entry);
+                        break;
                     }
-                    else if (entry.KEY == "END_TIME")
-                    {
-                        manager.EndTime = TryGetDateTime(entry);
-                    }
-                    else if (Regex.IsMatch(entry.KEY!, "^L.ste r.kker$"))
-                    {
-                        manager.RowsRead = TryGetInt(entry);
-                    }
-                    else if (Regex.IsMatch(entry.KEY!, "^Skrevne r.kker$"))
-                    {
-                        manager.RowsWritten = TryGetInt(entry);
-                    }
-                    // Dictionaries
-                    else if (entry.KEY!.StartsWith("READ"))
-                    {
-                        manager.RowsReadDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
-                    }
-                    else if (entry.KEY!.StartsWith("WRITE"))
-                    {
-                        manager.RowsWrittenDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
-                    }
-                    else if (entry.KEY!.StartsWith("sql_"))
-                    {
-                        manager.SqlCostDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
-                    }
-                    else if (entry.KEY!.StartsWith("TIME_"))
-                    {
-                        manager.TimeDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
-                    }
-                    engineProperties.Remove(entry);
+                    manager.StartTime = TryGetDateTime(entry);
                 }
-                output.Add(manager);
+                else if (entry.KEY == "END_TIME")
+                {
+                    manager.EndTime = TryGetDateTime(entry);
+                }
+                else if (Regex.IsMatch(entry.KEY!, "^L.ste r.kker$"))
+                {
+                    manager.RowsRead = TryGetInt(entry);
+                }
+                else if (Regex.IsMatch(entry.KEY!, "^Skrevne r.kker$"))
+                {
+                    manager.RowsWritten = TryGetInt(entry);
+                }
+                // Dictionaries
+                else if (entry.KEY!.StartsWith("READ"))
+                {
+                    manager.RowsReadDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
+                }
+                else if (entry.KEY!.StartsWith("WRITE"))
+                {
+                    manager.RowsWrittenDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
+                }
+                else if (entry.KEY!.StartsWith("sql_"))
+                {
+                    manager.SqlCostDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
+                }
+                else if (entry.KEY!.StartsWith("TIME_"))
+                {
+                    manager.TimeDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
+                }
+                engineProperties.Remove(entry);
             }
-            return output;
+            output.Add(manager);
         }
+        return output;
+    }
 
-        private static DateTime? TryGetDateTime(ENGINE_PROPERTY entry)
+    private static DateTime? TryGetDateTime(ENGINE_PROPERTY entry)
+    {
+        if (DateTime.TryParse(entry?.VALUE, out DateTime result))
         {
-            if (DateTime.TryParse(entry?.VALUE, out DateTime result))
-            {
-                return result;
-            }
-            return null;
+            return result;
         }
+        return null;
+    }
 
-        private static int? TryGetInt(ENGINE_PROPERTY entry)
+    private static int? TryGetInt(ENGINE_PROPERTY entry)
+    {
+        if (int.TryParse(entry?.VALUE, out int result))
         {
-            if (int.TryParse(entry?.VALUE, out int result))
-            {
-                return result;
-            }
-            return null;
+            return result;
         }
+        return null;
     }
 }
