@@ -1,4 +1,5 @@
 ﻿using DataLibrary.Models;
+using DataLibrary.Models.Database;
 
 namespace DataLibrary.DataAccess.Interfaces;
 

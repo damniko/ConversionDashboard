@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -40,7 +41,7 @@ public class ManagerViewModel : ObservableObject
     }
 
     // Manager View
-    public List<ManagerDto> Managers { get; } = new();
+    public ObservableCollection<ManagerDto> Managers { get; } = new();
     public ICollectionView View => _viewSource.View;
     public string SearchTerm
     {
@@ -98,7 +99,9 @@ public class ManagerViewModel : ObservableObject
 
     private async Task UpdateData(DateTime date)
     {
-        await _semaphore.WaitAsync();
+        //await _semaphore.WaitAsync();
+        _semaphore.Wait();
+        Trace.WriteLine($"{DateTime.Now}: Starting update");
         try
         {
             await UpdateExecutions();
@@ -108,6 +111,7 @@ public class ManagerViewModel : ObservableObject
         {
             _lastUpdated = date;
             _semaphore.Release();
+            Trace.WriteLine($"{DateTime.Now}: Finished update, lastUpdated=[{_lastUpdated}]");
         }
     }
 
@@ -122,18 +126,53 @@ public class ManagerViewModel : ObservableObject
 
     private async Task UpdateManagers()
     {
-        var newManagers = await _controller.GetSince(_lastUpdated);
-        if (newManagers.Any() is false) return;
+        // Get new (or modified) managers
+        var modifiedManagers = await _controller.GetSince(_lastUpdated);
+        if (modifiedManagers.Any() is false) return;
 
         _viewSource.Dispatcher.Invoke(() =>
         {
-            using (View.DeferRefresh())
+            foreach (var entry in modifiedManagers)
             {
-                ManagerHelper.MergeProperties(newManagers, Managers);
+                // If manager already exists, replace it (TODO - consider only updating the properties)
+                if (Managers.FirstOrDefault(x => x.Name == entry.Name && x.StartTime == entry.StartTime) is { } manager)
+                {
+                    Trace.WriteLine($"{DateTime.Now}: Replacing manager {manager.Name}");
+                    UpdateManagerProperties(entry, ref manager);
+                }
+                else
+                {
+                    Trace.WriteLine($"{DateTime.Now}: Adding manager {entry.Name}");
+                    Managers.Add(entry);
+                }
             }
-            View.Refresh();
         });
         OnPropertyChanged(nameof(CurrentCount));
+    }
+
+    private void UpdateManagerProperties(ManagerDto input, ref ManagerDto output)
+    {
+        output.StartTime ??= input.StartTime;
+        output.EndTime ??= input.EndTime;
+        output.RowsRead ??= input.RowsRead;
+        output.RowsWritten ??= input.RowsWritten;
+        output.Runtime ??= input.Runtime;
+        foreach (KeyValuePair<string, int> pair in output.RowsReadDict)
+        {
+            output.RowsReadDict.TryAdd(pair.Key, pair.Value);
+        }
+        foreach (KeyValuePair<string, int> pair in output.RowsWrittenDict)
+        {
+            output.RowsWrittenDict.TryAdd(pair.Key, pair.Value);
+        }
+        foreach (KeyValuePair<string, int> pair in output.TimeDict)
+        {
+            output.TimeDict.TryAdd(pair.Key, pair.Value);
+        }
+        foreach (KeyValuePair<string, int> pair in output.SqlCostDict)
+        {
+            output.SqlCostDict.TryAdd(pair.Key, pair.Value);
+        }
     }
 
     private CollectionViewSource ConfigureViewSource()

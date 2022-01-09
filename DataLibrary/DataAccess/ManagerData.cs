@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using DataLibrary.DataAccess.Interfaces;
 using DataLibrary.Models;
 using DataLibrary.Models.Database;
@@ -8,6 +9,7 @@ namespace DataLibrary.DataAccess;
 public class ManagerData : IManagerData
 {
     private readonly IDataAccess _db;
+    internal List<Manager> Managers { get; } = new(); 
 
     public ManagerData(IDataAccess db)
     {
@@ -16,82 +18,94 @@ public class ManagerData : IManagerData
 
     public async Task<IEnumerable<Manager>> GetSinceAsync(DateTime fromDate, string connStrKey)
     {
-        var allEngineProperties = await _db.GetEnginePropertiesAsync(connStrKey);
+        Trace.WriteLine($"{DateTime.Now}: Getting engine properties with fromDate=[{fromDate}]");
+        var engineProperties = (from e in await _db.GetEnginePropertiesAsync(connStrKey)
+                                where e.TIMESTAMP > fromDate
+                                orderby e.TIMESTAMP
+                                select e).ToList();
 
-        var engineProperties = (from e in allEngineProperties
-                where e.TIMESTAMP.HasValue && e.TIMESTAMP.Value > fromDate
-                orderby e.TIMESTAMP
-                select e)
-            .ToList();
+        var modifiedManagers = GetModifiedManagers(engineProperties, Managers);
 
-        var managerNames = allEngineProperties
-            .Where(e => e.KEY == "START_TIME")
-            .Select(e => e.MANAGER!)
-            .ToList();
-
-        var output = GetManagers(managerNames, engineProperties);
-
-        return output;
+        return modifiedManagers;
     }
 
-    private static IEnumerable<Manager> GetManagers(List<string> names, ICollection<ENGINE_PROPERTY> engineProperties)
+    private List<Manager> GetModifiedManagers(IEnumerable<ENGINE_PROPERTY> engineProps, List<Manager> managers)
     {
-        List<Manager> output = new();
-
-        foreach (string name in names)
+        var modifiedManagers = new List<Manager>();
+        foreach (var entry in engineProps)
         {
-            Manager manager = new() { Name = name };
-
-            var properties = engineProperties
-                .Where(e => e.MANAGER == name)
-                .ToList();
-
-            foreach (var entry in properties)
+            Manager? manager;
+            if (entry.KEY == "START_TIME") // This is the first entry written by a manager
             {
-                // Properties
-                if (entry.KEY == "START_TIME")
+                if (managers.Any(x => x.Name == entry.MANAGER! && x.StartTime == DateTime.Parse(entry.VALUE!)))
                 {
-                    // If START_TIME is already set, the rest of the entries are for other executions
-                    if (manager.StartTime.HasValue)
-                    {
-                        break;
-                    }
-                    manager.StartTime = TryGetDateTime(entry);
+                    Trace.WriteLine($"{DateTime.Now}: START_TIME entry for manager {entry.MANAGER} has already been parsed, skipping");
+                    continue;
                 }
-                else if (entry.KEY == "END_TIME")
-                {
-                    manager.EndTime = TryGetDateTime(entry);
-                }
-                else if (Regex.IsMatch(entry.KEY!, "^L.ste r.kker$"))
-                {
-                    manager.RowsRead = TryGetInt(entry);
-                }
-                else if (Regex.IsMatch(entry.KEY!, "^Skrevne r.kker$"))
-                {
-                    manager.RowsWritten = TryGetInt(entry);
-                }
-                // Dictionaries
-                else if (entry.KEY!.StartsWith("READ"))
-                {
-                    manager.RowsReadDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
-                }
-                else if (entry.KEY!.StartsWith("WRITE"))
-                {
-                    manager.RowsWrittenDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
-                }
-                else if (entry.KEY!.StartsWith("sql_"))
-                {
-                    manager.SqlCostDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
-                }
-                else if (entry.KEY!.StartsWith("TIME_"))
-                {
-                    manager.TimeDict.Add(entry.KEY!, int.Parse(entry.VALUE!));
-                }
-                engineProperties.Remove(entry);
+                manager = new() { Name = entry.MANAGER! };
+                modifiedManagers.Add(manager);
+                managers.Add(manager);
+                Trace.WriteLine($"{DateTime.Now}: Created {manager.Name}");
             }
-            output.Add(manager);
+            else
+            {
+                // Try to find the last manager that already exists with the same name, which also matches the timestamp
+                manager = managers.LastOrDefault(x => x.Name.Contains(entry.MANAGER!) && x.StartTime <= entry.TIMESTAMP);
+                if (manager is null)
+                {
+                    // Hmm, then we have a property for a manager that has not yet written a START_TIME entry.
+                    // For now, we will log it and move on (it may be a 'Scripts' entry which is not super useful)
+                    // TODO - log this
+                    Trace.WriteLine($"{DateTime.Now}: No matching manager for [{entry.MANAGER}] and key [{entry.KEY}]");
+                    continue;
+                }
+                if (!modifiedManagers.Any(x => x.Name == manager.Name && x.StartTime <= entry.TIMESTAMP))
+                {
+                    modifiedManagers.Add(manager);
+                }
+            }
+            // add parsed value to mgr
+            AddParsedValueToMgr(entry, ref manager);
         }
-        return output;
+        return modifiedManagers;
+    }
+
+    private void AddParsedValueToMgr(ENGINE_PROPERTY entry, ref Manager manager)
+    {
+        // Properties
+        if (entry.KEY == "START_TIME")
+        {
+            manager.StartTime ??= TryGetDateTime(entry);
+        }
+        else if (entry.KEY == "END_TIME")
+        {
+            manager.EndTime ??= TryGetDateTime(entry);
+        }
+        else if (Regex.IsMatch(entry.KEY!, "^L.ste r.kker$"))
+        {
+            manager.RowsRead ??= TryGetInt(entry);
+        }
+        else if (Regex.IsMatch(entry.KEY!, "^Skrevne r.kker$"))
+        {
+            manager.RowsWritten ??= TryGetInt(entry);
+        }
+        // Dictionaries
+        else if (entry.KEY!.StartsWith("READ"))
+        {
+            manager.RowsReadDict.TryAdd(entry.KEY!, int.Parse(entry.VALUE!));
+        }
+        else if (entry.KEY!.StartsWith("WRITE"))
+        {
+            manager.RowsWrittenDict.TryAdd(entry.KEY!, int.Parse(entry.VALUE!));
+        }
+        else if (entry.KEY!.StartsWith("sql_"))
+        {
+            manager.SqlCostDict.TryAdd(entry.KEY!, int.Parse(entry.VALUE!));
+        }
+        else if (entry.KEY!.StartsWith("TIME_"))
+        {
+            manager.TimeDict.TryAdd(entry.KEY!, int.Parse(entry.VALUE!));
+        }
     }
 
     private static DateTime? TryGetDateTime(ENGINE_PROPERTY entry)
