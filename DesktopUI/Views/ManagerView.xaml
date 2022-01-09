@@ -18,7 +18,8 @@
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal"
-                    Grid.Column="1">
+                    Grid.Column="1"
+                    ZIndex="1">
             <Button Content="Refresh"
                     Command="{Binding UpdateDataCmd}"/>
             <Button Content="Pop ud"/>

@@ -5,5 +5,5 @@ namespace DataLibrary.DataAccess.Interfaces;
 
 public interface IManagerData
 {
-    Task<IEnumerable<Manager>> GetSinceAsync(DateTime fromDate, string connStrKey);
+    Task<List<Manager>> GetSinceAsync(DateTime fromDate, string connStrKey);
 }

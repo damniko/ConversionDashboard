@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using DesktopUI.Controllers;
-using DesktopUI.Helpers;
 using DesktopUI.Library;
 using DesktopUI.Models;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
@@ -24,7 +23,6 @@ public class ReconciliationViewModel : ObservableObject
     private readonly CollectionViewSource _viewSource;
     private readonly ReconciliationController _controller;
     private readonly ExecutionController _executionController;
-    private readonly ExecutionAssociationHelper _associationHelper;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private DateTime _lastUpdated = System.Data.SqlTypes.SqlDateTime.MinValue.Value;
     private bool _showEmpty = false;
@@ -37,12 +35,10 @@ public class ReconciliationViewModel : ObservableObject
 
     public ReconciliationViewModel(QueryTimerService timerService,
         ReconciliationController reconciliationController,
-        ExecutionController executionController,
-        ExecutionAssociationHelper associationHelper)
+        ExecutionController executionController)
     {
         _controller = reconciliationController;
         _executionController = executionController;
-        _associationHelper = associationHelper;
         _viewSource = ConfigureViewSource();
         timerService.ReconciliationTimer.Elapsed += (d) => UpdateDataCmd.Execute(d);
     }

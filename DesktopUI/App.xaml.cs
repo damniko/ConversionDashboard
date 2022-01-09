@@ -2,8 +2,8 @@
 using System.Windows;
 using DataLibrary.DataAccess;
 using DataLibrary.DataAccess.Interfaces;
+using DataLibrary.Helpers;
 using DesktopUI.Controllers;
-using DesktopUI.Helpers;
 using DesktopUI.Library;
 using DesktopUI.ViewModels;
 using Microsoft.Extensions.Configuration;
@@ -15,7 +15,7 @@ namespace DesktopUI;
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
-public partial class App : Application
+public partial class App
 {
     public App()
     {
@@ -65,9 +65,8 @@ public partial class App : Application
 
         // Singletons
         services
-            .AddSingleton(provider => GetConfiguration())
-            .AddSingleton<QueryTimerService>()
-            .AddSingleton<ExecutionAssociationHelper>();
+            .AddSingleton(_ => GetConfiguration())
+            .AddSingleton<QueryTimerService>();
 
         // Data Access
         services
@@ -94,6 +93,7 @@ public partial class App : Application
 
         // Others
         services
+            .AddTransient<ManagerDataHelper>()
             .AddTransient<IQueryTimer, QueryTimer>();
             
         return services.BuildServiceProvider();

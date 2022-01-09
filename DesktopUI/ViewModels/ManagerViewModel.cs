@@ -2,17 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Threading;
 using DesktopUI.Controllers;
-using DesktopUI.Helpers;
 using DesktopUI.Library;
 using DesktopUI.Models;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
@@ -59,11 +54,11 @@ public class ManagerViewModel : ObservableObject
     {
         if (SelectedExecution is null) return null;
 
-        var last = SelectedExecution.ContextDict.Last();
+        (long key, string? value) = SelectedExecution.ContextDict.Last();
 
-        if (Managers.Any(x => x.Name.Split(',').First().ToUpper() == last.Value))
+        if (Managers.Any(x => x.Name.Split(',').First().ToUpper() == value))
         {
-            return last.Key;
+            return key;
         }
 
         var fixedName = Managers.LastOrDefault()?.Name.Split(',').First().ToUpper();
@@ -99,19 +94,19 @@ public class ManagerViewModel : ObservableObject
 
     private async Task UpdateData(DateTime date)
     {
-        //await _semaphore.WaitAsync();
-        _semaphore.Wait();
-        Trace.WriteLine($"{DateTime.Now}: Starting update");
-        try
+        bool canExecute = await _semaphore.WaitAsync(0);
+        if (canExecute)
         {
-            await UpdateExecutions();
-            await UpdateManagers();
-        }
-        finally
-        {
-            _lastUpdated = date;
-            _semaphore.Release();
-            Trace.WriteLine($"{DateTime.Now}: Finished update, lastUpdated=[{_lastUpdated}]");
+            try
+            {
+                await UpdateExecutions();
+                await UpdateManagers();
+                _lastUpdated = date;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
     }
 
@@ -126,23 +121,19 @@ public class ManagerViewModel : ObservableObject
 
     private async Task UpdateManagers()
     {
-        // Get new (or modified) managers
-        var modifiedManagers = await _controller.GetSince(_lastUpdated);
-        if (modifiedManagers.Any() is false) return;
+        var managers = await _controller.GetSince(_lastUpdated);
+        if (managers.Any() is false) return;
 
         _viewSource.Dispatcher.Invoke(() =>
         {
-            foreach (var entry in modifiedManagers)
+            foreach (var entry in managers)
             {
-                // If manager already exists, replace it (TODO - consider only updating the properties)
                 if (Managers.FirstOrDefault(x => x.Name == entry.Name && x.StartTime == entry.StartTime) is { } manager)
                 {
-                    Trace.WriteLine($"{DateTime.Now}: Replacing manager {manager.Name}");
                     UpdateManagerProperties(entry, ref manager);
                 }
                 else
                 {
-                    Trace.WriteLine($"{DateTime.Now}: Adding manager {entry.Name}");
                     Managers.Add(entry);
                 }
             }
@@ -152,6 +143,7 @@ public class ManagerViewModel : ObservableObject
 
     private void UpdateManagerProperties(ManagerDto input, ref ManagerDto output)
     {
+        // TODO - consider moving this into a helper class (if more methods can be grouped into it)
         output.StartTime ??= input.StartTime;
         output.EndTime ??= input.EndTime;
         output.RowsRead ??= input.RowsRead;
@@ -182,7 +174,7 @@ public class ManagerViewModel : ObservableObject
             Source = Managers,
             SortDescriptions =
             {
-                new(nameof(ManagerDto.StartTime), System.ComponentModel.ListSortDirection.Ascending)
+                new SortDescription(nameof(ManagerDto.StartTime), ListSortDirection.Ascending)
             }
         };
         viewSource.Filter += Managers_Filter;
