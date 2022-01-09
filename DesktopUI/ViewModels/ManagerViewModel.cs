@@ -17,6 +17,7 @@ namespace DesktopUI.ViewModels;
 
 public class ManagerViewModel : ObservableObject
 {
+    #region Fields
     private readonly ManagerController _controller;
     private readonly ExecutionController _executionController;
     private readonly CollectionViewSource _viewSource;
@@ -24,17 +25,22 @@ public class ManagerViewModel : ObservableObject
     private DateTime _lastUpdated = System.Data.SqlTypes.SqlDateTime.MinValue.Value;
     private string _searchTerm = string.Empty;
     private ExecutionDto? _selectedExecution;
+    private CancellationTokenSource _cts = new();
+    private string _currentStatus = string.Empty;
+    private bool _isUpdating;
+    #endregion
 
     public ManagerViewModel(QueryTimerService timerService,
-        ManagerController controller,
-        ExecutionController executionController)
+                            ManagerController controller,
+                            ExecutionController executionController)
     {
         _controller = controller;
         _executionController = executionController;
         _viewSource = ConfigureViewSource();
-        timerService.ManagerTimer.Elapsed += (d) => UpdateDataCmd.Execute(d);
+        timerService.ManagerTimer.Elapsed += d => Task.Run(() => UpdateData(d));
     }
 
+    #region Properties
     // Manager View
     public ObservableCollection<ManagerDto> Managers { get; } = new();
     public ICollectionView View => _viewSource.View;
@@ -49,23 +55,6 @@ public class ManagerViewModel : ObservableObject
     }
     public long? ExpectedCount => SelectedExecution?.ContextDict.Keys.Last();
     public long? CurrentCount => GetCurrentCount();
-
-    private long? GetCurrentCount()
-    {
-        if (SelectedExecution is null) return null;
-
-        (long key, string? value) = SelectedExecution.ContextDict.Last();
-
-        if (Managers.Any(x => x.Name.Split(',').First().ToUpper() == value))
-        {
-            return key;
-        }
-
-        var fixedName = Managers.LastOrDefault()?.Name.Split(',').First().ToUpper();
-        var contextId = SelectedExecution?.ContextDict.FirstOrDefault(x => x.Value == fixedName).Key;
-        return contextId;
-    }
-
     // Executions
     public ObservableCollection<ExecutionDto> Executions { get; } = new();
     public ExecutionDto? SelectedExecution
@@ -80,17 +69,34 @@ public class ManagerViewModel : ObservableObject
             View.Refresh();
         }
     }
+    // Progress
+    public string CurrentStatus { get => _currentStatus; set => SetProperty(ref _currentStatus, value); }
+    public bool IsUpdating
+    {
+        get => _isUpdating; 
+        set
+        {
+            SetProperty(ref _isUpdating, value);
+            OnPropertyChanged(nameof(StopUpdateCmd));
+            OnPropertyChanged(nameof(UpdateDataCmd));
+        }
+    }
+    #endregion
 
+    #region Commands
     /// <summary>
     /// Gets any new data and triggers an update for the view.
     /// </summary>
-    public ICommand UpdateDataCmd 
-        => new RelayCommand<DateTime?>(d => Task.Run(() => UpdateData(d ?? DateTime.Now)));
+    public ICommand UpdateDataCmd
+        => new RelayCommand<DateTime?>(d => ClearAndUpdateData(DateTime.Now), d => !IsUpdating);
+    public ICommand StopUpdateCmd
+        => new RelayCommand(() => _cts.Cancel(), () => IsUpdating);
     /// <summary>
     /// Clears the value of the current <see cref="SelectedExecution"/>.
     /// </summary>
     public ICommand ClearSelectedExecutionCmd
         => new RelayCommand(() => SelectedExecution = null, () => SelectedExecution != null);
+    #endregion
 
     private async Task UpdateData(DateTime date)
     {
@@ -99,9 +105,21 @@ public class ManagerViewModel : ObservableObject
         {
             try
             {
-                await UpdateExecutions();
-                await UpdateManagers();
-                _lastUpdated = date;
+                _cts = new CancellationTokenSource();
+                Progress<ProgressReportModel> progress = new();
+                progress.ProgressChanged += ReportProgress;
+                IsUpdating = true;
+                try
+                {
+                    await UpdateExecutions(progress, _cts.Token);
+                    await UpdateManagers(progress, _cts.Token);
+                    _lastUpdated = date;
+                }
+                catch (OperationCanceledException)
+                {
+                    CurrentStatus = "Update was cancelled.";
+                }
+                IsUpdating = false;
             }
             finally
             {
@@ -110,24 +128,51 @@ public class ManagerViewModel : ObservableObject
         }
     }
 
-    private async Task UpdateExecutions()
+    private void ClearAndUpdateData(DateTime date)
     {
+        _cts.Cancel();
+        Executions.Clear();
+        Managers.Clear();
+        _lastUpdated = System.Data.SqlTypes.SqlDateTime.MinValue.Value;
+        Task.Run(() => UpdateData(date));
+    }
+
+    private async Task UpdateExecutions(IProgress<ProgressReportModel> progress, CancellationToken cancellationToken)
+    {
+        var report = new ProgressReportModel { Progress = $"Getting executions..." };
+        progress.Report(report);
+
         var newExecs = await _executionController.GetSinceAsync(_lastUpdated);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        report.Progress = $"Found {newExecs.Count} executions";
+        progress.Report(report);
+
         App.Current.Dispatcher.Invoke(() =>
         {
             newExecs.ForEach(x => Executions.Add(x));
         });
     }
 
-    private async Task UpdateManagers()
+    private async Task UpdateManagers(IProgress<ProgressReportModel> progress, CancellationToken cancellationToken)
     {
+        var report = new ProgressReportModel { Progress = $"Getting managers..." };
+        progress.Report(report);
+
         var managers = await _controller.GetSince(_lastUpdated);
+        
+        cancellationToken.ThrowIfCancellationRequested();
+        report.Progress = $"Found {managers.Count} managers";
+        progress.Report(report);
+        
         if (managers.Any() is false) return;
 
         _viewSource.Dispatcher.Invoke(() =>
         {
             foreach (var entry in managers)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (Managers.FirstOrDefault(x => x.Name == entry.Name && x.StartTime == entry.StartTime) is { } manager)
                 {
                     UpdateManagerProperties(entry, ref manager);
@@ -181,10 +226,31 @@ public class ManagerViewModel : ObservableObject
         return viewSource;
     }
 
+    private long? GetCurrentCount()
+    {
+        if (SelectedExecution is null) return null;
+
+        (long key, string? value) = SelectedExecution.ContextDict.Last();
+
+        if (Managers.Any(x => x.Name.Split(',').First().ToUpper() == value))
+        {
+            return key;
+        }
+
+        var fixedName = Managers.LastOrDefault()?.Name.Split(',').First().ToUpper();
+        var contextId = SelectedExecution?.ContextDict.FirstOrDefault(x => x.Value == fixedName).Key;
+        return contextId;
+    }
+
     private void Managers_Filter(object sender, FilterEventArgs e)
     {
         ManagerDto item = (ManagerDto)e.Item;
         e.Accepted = IsInExecution(item) && item.Name.Contains(SearchTerm);
+    }
+
+    private void ReportProgress(object? sender, ProgressReportModel e)
+    {
+        CurrentStatus = e.Progress;
     }
 
     private bool IsInExecution(ManagerDto item)

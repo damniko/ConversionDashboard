@@ -20,6 +20,8 @@
         <StackPanel Orientation="Horizontal"
                     Grid.Column="1"
                     ZIndex="1">
+            <Button Content="Stop"
+                    Command="{Binding StopUpdateCmd}"/>
             <Button Content="Refresh"
                     Command="{Binding UpdateDataCmd}"/>
             <Button Content="Pop ud"/>
@@ -133,11 +135,13 @@
                     <!-- Footer -->
                     <StackPanel Orientation="Horizontal"
                                 Grid.Row="2">
-                        <TextBlock Text="Current: "/>
+                        <TextBlock Text="Current status: "/>
+                        <TextBlock Text="{Binding CurrentStatus}"/>
+                        <!--<TextBlock Text="Current: "/>
                         <TextBlock Text="{Binding CurrentCount, TargetNullValue='N/A'}" d:Text="0"/>
                         <TextBlock Text="/"/>
                         <TextBlock Text="{Binding ExpectedCount, TargetNullValue='N/A'}" d:Text="0"/>
-                        <TextBlock Text=" (expected)"/>
+                        <TextBlock Text=" (expected)"/>-->
                     </StackPanel>
                 </Grid>
             </TabItem>
