@@ -28,6 +28,13 @@ public class ManagerViewModel : ObservableObject
     private CancellationTokenSource _cts = new();
     private string _currentStatus = string.Empty;
     private bool _isUpdating;
+    private ManagerDto? _selectedManager;
+    private bool _showNameColumn = true;
+    private bool _showStartTimeColumn = true;
+    private bool _showEndTimeColumn = true;
+    private bool _showRuntimeColumn = true;
+    private bool _showReadColumn = true;
+    private bool _showWrittenColumn = true;
     #endregion
 
     public ManagerViewModel(QueryTimerService timerService,
@@ -37,8 +44,11 @@ public class ManagerViewModel : ObservableObject
         _controller = controller;
         _executionController = executionController;
         _viewSource = ConfigureViewSource();
+        ComparisonVM = new(Managers);
         timerService.ManagerTimer.Elapsed += d => Task.Run(() => UpdateData(d));
     }
+
+    public ManagerComparisonViewModel ComparisonVM { get; }
 
     #region Properties
     // Manager View
@@ -55,6 +65,13 @@ public class ManagerViewModel : ObservableObject
     }
     public long? ExpectedCount => SelectedExecution?.ContextDict.Keys.Last();
     public long? CurrentCount => GetCurrentCount();
+    public ManagerDto? SelectedManager { get => _selectedManager; set => SetProperty(ref _selectedManager, value); }
+    public bool ShowNameColumn { get => _showNameColumn; set => SetProperty(ref _showNameColumn, value); }
+    public bool ShowStartTimeColumn { get => _showStartTimeColumn; set => SetProperty(ref _showStartTimeColumn, value); }
+    public bool ShowEndTimeColumn { get => _showEndTimeColumn; set => SetProperty(ref _showEndTimeColumn, value); }
+    public bool ShowRuntimeColumn { get => _showRuntimeColumn; set => SetProperty(ref _showRuntimeColumn, value); }
+    public bool ShowReadColumn { get => _showReadColumn; set => SetProperty(ref _showReadColumn, value); }
+    public bool ShowWrittenColumn { get => _showWrittenColumn; set => SetProperty(ref _showWrittenColumn, value); }
     // Executions
     public ObservableCollection<ExecutionDto> Executions { get; } = new();
     public ExecutionDto? SelectedExecution
@@ -62,11 +79,14 @@ public class ManagerViewModel : ObservableObject
         get => _selectedExecution;
         set
         {
-            SetProperty(ref _selectedExecution, value);
-            OnPropertyChanged(nameof(ClearSelectedExecutionCmd));
-            OnPropertyChanged(nameof(ExpectedCount));
-            OnPropertyChanged(nameof(CurrentCount));
-            View.Refresh();
+            if (SetProperty(ref _selectedExecution, value))
+            {
+                OnPropertyChanged(nameof(ClearSelectedExecutionCmd));
+                OnPropertyChanged(nameof(ExpectedCount));
+                OnPropertyChanged(nameof(CurrentCount));
+                SelectedManager = null;
+                View.Refresh();
+            }
         }
     }
     // Progress
@@ -91,6 +111,7 @@ public class ManagerViewModel : ObservableObject
         => new RelayCommand<DateTime?>(d => ClearAndUpdateData(DateTime.Now), d => !IsUpdating);
     public ICommand StopUpdateCmd
         => new RelayCommand(() => _cts.Cancel(), () => IsUpdating);
+    public ICommand SelectManagerCmd => new RelayCommand<ManagerDto>(m => SelectedManager = m);
     /// <summary>
     /// Clears the value of the current <see cref="SelectedExecution"/>.
     /// </summary>
@@ -133,6 +154,8 @@ public class ManagerViewModel : ObservableObject
         _cts.Cancel();
         Executions.Clear();
         Managers.Clear();
+        SelectedExecution = null;
+        SelectedManager = null;
         _lastUpdated = System.Data.SqlTypes.SqlDateTime.MinValue.Value;
         Task.Run(() => UpdateData(date));
     }

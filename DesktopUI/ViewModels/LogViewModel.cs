@@ -37,8 +37,8 @@ public class LogViewModel : ObservableObject
     private long? _shownContextId;
 
     public LogViewModel(QueryTimerService queryTimerService,
-        LogController controller,
-        ExecutionController executionController)
+                        LogController controller,
+                        ExecutionController executionController)
     {
         _controller = controller;
         _executionController = executionController;
@@ -184,6 +184,7 @@ public class LogViewModel : ObservableObject
     /// <param name="date">The date at which the update was requested.</param>
     private async Task UpdateData(DateTime date)
     {
+        OnPropertyChanged(nameof(UpdateDataCmd));
         _semaphore.Wait();
         try
         {

@@ -21,7 +21,7 @@
                               Grid.Column="0"
                               Grid.ColumnSpan="2"/>
 
-        <local:ManagerView Grid.Row="1"/>
+        <local:SimpleManagerView Grid.Row="1"/>
 
         <local:LogView Grid.Row="1"
                        Grid.Column="1"/>

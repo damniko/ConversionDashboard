@@ -1,0 +1,147 @@
+﻿<UserControl x:Class="DesktopUI.Views.SimpleManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DesktopUI.Views"
+             xmlns:cnvs="clr-namespace:DesktopUI.Views.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <cnvs:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <cnvs:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <cnvs:NullToBoolConverter x:Key="NullToBoolConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="22"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Used to access the DataContext from elements outside the actual visual tree -->
+        <FrameworkElement x:Name="Proxy" Visibility="Collapsed"/>
+
+        <StackPanel Orientation="Horizontal"
+                    Grid.Column="1"
+                    ZIndex="1">
+            <Button Content="Stop"
+                    Command="{Binding StopUpdateCmd}"/>
+            <Button Content="Refresh"
+                    Command="{Binding UpdateDataCmd}"/>
+            <Button Content="Pop ud"/>
+        </StackPanel>
+
+        <Grid Grid.RowSpan="2"
+              Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="22"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal"
+                        Grid.Column="2">
+                <TextBlock Text="Details"/>
+            </StackPanel>
+
+            <!-- Body: Managers -->
+            <Grid Grid.Row="0"
+                  Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="22"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Row="0"
+                         Grid.Column="0"
+                         Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <ComboBox SelectedItem="{Binding SelectedExecution}"
+                                ItemsSource="{Binding Executions}"
+                                Grid.Column="1">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Id, StringFormat='Execution {0}'}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Content="X"
+                            Grid.Column="2"
+                            Command="{Binding ClearSelectedExecutionCmd}"/>
+            </Grid>
+
+            <DataGrid x:Name="ManagerDataGrid"
+                            Grid.Row="1"
+                            HorizontalAlignment="Stretch"
+                            HeadersVisibility="Column"
+                            IsReadOnly="True"
+                            AutoGenerateColumns="False"
+                            ItemsSource="{Binding View}"
+                            d:ItemsSource="{d:SampleData}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name"
+                                            Visibility="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowNameColumn, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            Binding="{Binding NameShort}"/>
+                    <DataGridTextColumn Header="Started" x:Name="StartTimeColumn"
+                                            Visibility="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowStartTimeColumn, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            Binding="{Binding StartTime, StringFormat=HH:mm:ss, TargetNullValue='N/A'}"/>
+                    <DataGridTextColumn Header="Finished"
+                                            Visibility="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowEndTimeColumn, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            Binding="{Binding EndTime, StringFormat=HH:mm:ss, TargetNullValue='N/A'}"/>
+                    <DataGridTextColumn Header="Runtime"
+                                            Visibility="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowRuntimeColumn, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            Binding="{Binding Runtime, StringFormat=hh\\:mm\\:ss, TargetNullValue='N/A'}"/>
+                    <DataGridTextColumn Header="Read"
+                                            Visibility="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowReadColumn, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            Binding="{Binding RowsRead, TargetNullValue='N/A'}"/>
+                    <DataGridTextColumn Header="Written"
+                                            Visibility="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowWrittenColumn, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            Binding="{Binding RowsWritten, TargetNullValue='N/A'}"/>
+                </DataGrid.Columns>
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu>
+                                    <!-- If all columns are hidden, it is not possible to bring them back -->
+                                    <MenuItem IsCheckable="True"
+                                                    IsEnabled="False"
+                                                    IsChecked="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowNameColumn}"
+                                                    Header="Name"/>
+                                    <MenuItem IsCheckable="True"
+                                                    IsChecked="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowStartTimeColumn}"
+                                                    Header="Started"/>
+                                    <MenuItem IsCheckable="True"
+                                                    IsChecked="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowEndTimeColumn}"
+                                                    Header="Finished"/>
+                                    <MenuItem IsCheckable="True"
+                                                    IsChecked="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowRuntimeColumn}"
+                                                    Header="Runtime"/>
+                                    <MenuItem IsCheckable="True"
+                                                    IsChecked="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowReadColumn}"
+                                                    Header="Read"/>
+                                    <MenuItem IsCheckable="True"
+                                                    IsChecked="{Binding Source={x:Reference Name=Proxy}, Path=DataContext.ShowWrittenColumn}"
+                                                    Header="Written"/>
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+                <!--<DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <EventSetter Event="MouseDoubleClick" Handler="SelectManagerHandler"/>
+                        <EventSetter Event="PreviewKeyDown" Handler="SelectManagerHandler"/>
+                    </Style>
+                </DataGrid.RowStyle>-->
+            </DataGrid>
+        </Grid>
+    </Grid>
+</UserControl>
